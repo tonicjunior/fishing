@@ -1,0 +1,1878 @@
+:root {
+  --bg-deep: #0a1929;
+  --bg-mid: #0d2137;
+  --bg-surface: #132f4c;
+  --bg-card: #173a5e;
+  --text-primary: #e3f2fd;
+  --text-secondary: #90caf9;
+  --text-muted: #5c8ab5;
+  --primary: #00bcd4;
+  --primary-dark: #0097a7;
+  --primary-glow: rgba(0, 188, 212, 0.4);
+  --gold: #ffc107;
+  --gold-dark: #ffa000;
+  --gold-glow: rgba(255, 193, 7, 0.4);
+  --success: #4caf50;
+  --error: #f44336;
+  --common: #78909c;
+  --uncommon: #4caf50;
+  --rare: #9c27b0;
+  --legendary: #ff9800;
+  --border: #1e4976;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px var(--primary-glow);
+  --shadow-gold: 0 0 15px var(--gold-glow);
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+}
+
+.hidden-screen {
+  display: none !important;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.icon-fish {
+  font-size: 10rem;
+}
+
+.disabled {
+  opacity: 0.6; /* Reduz a opacidade */
+  cursor: not-allowed; /* Cursor de proibido */
+  filter: grayscale(100%);
+
+  background: var(--surface-dark) !important;
+  border-color: var(--text-muted) !important;
+  color: var(--text-muted) !important;
+}
+
+#game-screen {
+  font-family: "Fredoka", sans-serif;
+  background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#game-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+  min-height: 100vh;
+}
+.game-header {
+  text-align: center;
+  padding: 1rem 0 1.5rem;
+}
+.game-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--text-secondary) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px var(--primary-glow);
+  margin-bottom: 0.25rem;
+}
+.game-header p {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+.game-main {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 1rem;
+  align-items: start;
+}
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.card {
+  background: linear-gradient(
+    180deg,
+    var(--bg-card) 0%,
+    var(--bg-surface) 100%
+  );
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: var(--shadow-md);
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.card-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.player-stats {
+  padding: 1.25rem;
+}
+.stats-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.level-badge {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-dark) 100%
+  );
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-glow);
+}
+.stats-info {
+  flex: 1;
+}
+.stats-info .label,
+.money-display .label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: block;
+}
+.stats-info .value {
+  font-weight: 600;
+}
+.money-display {
+  text-align: right;
+}
+.money-display .value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.gold {
+  color: var(--gold);
+}
+.xp-bar-container {
+  margin-bottom: 1rem;
+}
+.xp-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+.xp-bar {
+  height: 8px;
+  background: var(--bg-deep);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.xp-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(
+    90deg,
+    var(--primary) 0%,
+    var(--text-secondary) 100%
+  );
+  border-radius: 4px;
+  transition: width var(--transition-normal);
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.stat-item {
+  background: var(--bg-deep);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  text-align: center;
+}
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: block;
+}
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+.boat-inventory {
+  min-height: 200px;
+}
+.capacity-badge {
+  background: var(--bg-deep);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.capacity-badge.full {
+  background: var(--error);
+  color: white;
+}
+.capacity-bar {
+  height: 10px;
+  background: var(--bg-deep);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.capacity-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--primary);
+  border-radius: 5px;
+  transition: width var(--transition-normal),
+    background var(--transition-normal);
+}
+.capacity-fill.full {
+  background: var(--error);
+}
+.fish-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  max-height: 150px;
+  overflow-y: auto;
+}
+.fish-item {
+  aspect-ratio: 1;
+  background: var(--bg-deep);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  border: 2px solid transparent;
+  transition: transform var(--transition-fast),
+    border-color var(--transition-fast);
+  cursor: pointer;
+}
+.fish-item:hover {
+  transform: scale(1.1);
+}
+.fish-item.common {
+  border-color: var(--common);
+  background: rgba(120, 144, 156, 0.2);
+}
+.fish-item.uncommon {
+  border-color: var(--uncommon);
+  background: rgba(76, 175, 80, 0.2);
+}
+.fish-item.rare {
+  border-color: var(--rare);
+  background: rgba(156, 39, 176, 0.2);
+}
+.fish-item.legendary {
+  border-color: var(--legendary);
+  background: rgba(255, 152, 0, 0.2);
+}
+.empty-boat {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--text-muted);
+}
+.empty-boat span {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.empty-boat .small {
+  font-size: 0.85rem;
+}
+.ocean-view {
+  position: relative;
+  height: 500px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+.sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    #1a237e 0%,
+    #283593 30%,
+    #3949ab 50%,
+    var(--bg-surface) 100%
+  );
+}
+.sun {
+  position: absolute;
+  top: 20px;
+  right: 40px;
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(circle, #fff9c4 0%, #ffee58 50%, #ffc107 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 40px #ffeb3b, 0 0 80px rgba(255, 235, 59, 0.5);
+  animation: pulse 3s ease-in-out infinite;
+}
+.clouds {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  pointer-events: none;
+}
+.cloud {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+}
+.cloud-1 {
+  top: 15%;
+  left: -20%;
+  width: 100px;
+  height: 30px;
+  animation: cloud-float 25s linear infinite;
+}
+.cloud-2 {
+  top: 25%;
+  left: -30%;
+  width: 80px;
+  height: 25px;
+  animation: cloud-float 35s linear infinite;
+  animation-delay: -10s;
+}
+.wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: var(--bg-surface);
+  opacity: 0.6;
+}
+.wave-1 {
+  top: 45%;
+  animation: wave 4s ease-in-out infinite;
+  border-radius: 50% 50% 0 0;
+}
+.wave-2 {
+  top: 48%;
+  animation: wave 4s ease-in-out infinite;
+  animation-delay: -1s;
+  opacity: 0.7;
+}
+.wave-3 {
+  top: 51%;
+  animation: wave 4s ease-in-out infinite;
+  animation-delay: -2s;
+  opacity: 0.8;
+}
+.underwater {
+  position: absolute;
+  top: 55%;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    180deg,
+    var(--bg-surface) 0%,
+    var(--bg-mid) 50%,
+    var(--bg-deep) 100%
+  );
+}
+.bubble {
+  position: absolute;
+  background: rgba(0, 188, 212, 0.3);
+  border-radius: 50%;
+  animation: bubble-rise 4s ease-in infinite;
+}
+.bubble-1 {
+  left: 20%;
+  width: 8px;
+  height: 8px;
+  animation-delay: 0s;
+}
+.bubble-2 {
+  left: 40%;
+  width: 6px;
+  height: 6px;
+  animation-delay: 1s;
+}
+.bubble-3 {
+  left: 60%;
+  width: 10px;
+  height: 10px;
+  animation-delay: 2s;
+}
+.bubble-4 {
+  left: 80%;
+  width: 7px;
+  height: 7px;
+  animation-delay: 3s;
+}
+.fish-swimming {
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0;
+  animation: fish-swim 8s linear infinite;
+}
+.fish-swim-1 {
+  top: 30%;
+  animation-delay: 0s;
+}
+.fish-swim-2 {
+  top: 60%;
+  animation-delay: 4s;
+}
+.seaweed {
+  position: absolute;
+  bottom: 0;
+  width: 15px;
+  height: 40px;
+  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+  border-radius: 50% 50% 0 0;
+  transform-origin: bottom center;
+  animation: seaweed-sway 3s ease-in-out infinite;
+}
+.seaweed-1 {
+  left: 10%;
+  height: 45px;
+  animation-delay: 0s;
+}
+.seaweed-2 {
+  left: 15%;
+  height: 35px;
+  animation-delay: 0.5s;
+}
+.seaweed-3 {
+  right: 12%;
+  height: 50px;
+  animation-delay: 1s;
+}
+.boat {
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2.5rem;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+  animation: boat-float 3s ease-in-out infinite;
+  transition: left var(--transition-slow);
+  z-index: 10;
+  width: 200px;
+}
+.boat.traveling {
+  animation: boat-travel 2s ease-in-out infinite;
+}
+
+.area-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(23, 58, 94, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+}
+.area-emoji {
+  font-size: 1.25rem;
+}
+.area-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.status-bar {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  background: rgba(23, 58, 94, 0.9);
+  backdrop-filter: blur(8px);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+.status-text {
+  text-align: center;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+.status-text.traveling {
+  color: var(--primary);
+}
+.status-text.searching {
+  color: var(--gold);
+}
+.status-text.fishing {
+  color: var(--success);
+}
+.progress-bar {
+  height: 8px;
+  background: var(--bg-deep);
+  border-radius: 4px;
+  overflow: hidden;
+  display: block;
+}
+.progress-bar.active {
+  display: block;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--primary);
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+.minigame-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 25, 41, 0.95);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+.minigame-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.countdown {
+  font-size: 8rem;
+  font-weight: 700;
+  color: var(--gold);
+  text-shadow: 0 0 50px var(--gold-glow);
+  position: absolute;
+  z-index: 2001;
+  animation: pulse 0.5s ease infinite;
+  display: none;
+}
+.countdown.active {
+  display: block;
+}
+
+.fishing-minigame {
+  background: linear-gradient(
+    180deg,
+    var(--bg-card) 0%,
+    var(--bg-surface) 100%
+  );
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-glow);
+  width: 90%;
+  max-width: 500px;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+  display: none;
+}
+.minigame-overlay.game-active .fishing-minigame {
+  display: block;
+  transform: scale(1);
+}
+
+.minigame-header {
+  margin-bottom: 1.5rem;
+}
+.fish-emoji {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  animation: bounce 1s ease infinite;
+}
+.minigame-header h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+.difficulty {
+  color: var(--gold);
+  font-size: 1.2rem;
+}
+.minigame-container {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  height: 400px;
+}
+.fishing-bar {
+  position: relative;
+  width: 100px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    var(--bg-surface) 0%,
+    var(--bg-deep) 100%
+  );
+  border-radius: var(--radius-md);
+  border: 3px solid var(--border);
+  overflow: hidden;
+}
+.catch-zone {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  height: 80px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 188, 212, 0.3) 0%,
+    rgba(0, 188, 212, 0.5) 50%,
+    rgba(0, 188, 212, 0.3) 100%
+  );
+  border-top: 3px solid var(--primary);
+  border-bottom: 3px solid var(--primary);
+  border-radius: var(--radius-sm);
+  transition: top 0.05s linear;
+  top: 50%;
+}
+.catch-zone.catching {
+  background: linear-gradient(
+    180deg,
+    rgba(76, 175, 80, 0.3) 0%,
+    rgba(76, 175, 80, 0.5) 50%,
+    rgba(76, 175, 80, 0.3) 100%
+  );
+  border-color: var(--success);
+}
+.fish-marker {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  transition: top 0.1s linear;
+  top: 50%;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+.catch-progress-bar {
+  width: 40px;
+  height: 100%;
+  background: var(--bg-deep);
+  border-radius: var(--radius-md);
+  border: 3px solid var(--border);
+  overflow: hidden;
+  position: relative;
+}
+.catch-progress-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, var(--success) 0%, #388e3c 100%);
+  transition: height 0.1s linear;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+.catch-progress-fill.low {
+  background: linear-gradient(180deg, var(--error) 0%, #c62828 100%);
+}
+.catch-progress-fill.medium {
+  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dark) 100%);
+}
+.minigame-hint {
+  color: var(--text-muted);
+  font-size: 1rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+kbd {
+  background: var(--bg-deep);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  border: 1px solid var(--border);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  flex: 1;
+  background: linear-gradient(
+    180deg,
+    var(--primary) 0%,
+    var(--primary-dark) 100%
+  );
+  color: var(--bg-deep);
+  box-shadow: var(--shadow-glow);
+  font-size: 1.1rem;
+  padding: 1rem;
+  width: 100%;
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px var(--primary-glow);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn-primary.pulse {
+  animation: button-pulse 2s ease-in-out infinite;
+}
+.btn-secondary {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 1rem 1.25rem;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-card);
+  border-color: var(--primary);
+}
+.btn-secondary.active {
+  background: var(--primary);
+  color: var(--bg-deep);
+}
+.btn-gold {
+  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dark) 100%);
+  color: var(--bg-deep);
+  box-shadow: var(--shadow-gold);
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.btn-gold:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px var(--gold-glow);
+}
+.btn-upgrade {
+  background: var(--primary);
+  color: var(--bg-deep);
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  min-width: 70px;
+}
+.btn-upgrade:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+.btn-upgrade.maxed {
+  background: var(--success);
+  cursor: default;
+}
+
+.area-selector {
+  margin-top: 1rem;
+}
+.area-selector h3 {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+.areas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.area-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--bg-deep);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.area-btn:hover {
+  border-color: var(--border);
+  background: var(--bg-surface);
+}
+.area-btn.selected {
+  border-color: var(--primary);
+  background: rgba(0, 188, 212, 0.1);
+}
+.area-btn-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.area-btn-emoji {
+  font-size: 1.5rem;
+}
+.area-btn-info {
+  text-align: left;
+}
+.area-btn-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.area-btn-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.area-btn-selected {
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.shop-panel {
+  position: sticky;
+  top: 1rem;
+}
+.sell-section {
+  background: var(--bg-deep);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.sell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.sell-title {
+  font-weight: 600;
+}
+.sell-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.sell-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.sell-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  width: 0%;
+  transition: width 0.1s linear;
+}
+.sell-timer-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 0.5rem;
+  height: 1.2em;
+}
+.upgrade-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.tab-btn {
+  flex: 1;
+  padding: 0.5rem;
+  background: var(--bg-deep);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.tab-btn:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+.tab-btn.active {
+  background: var(--primary);
+  color: var(--bg-deep);
+}
+.tab-content {
+  display: none;
+}
+.tab-content.active {
+  display: block;
+}
+.upgrade-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg-deep);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.5rem;
+}
+.upgrade-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  text-align: center;
+}
+.upgrade-info {
+  flex: 1;
+}
+.upgrade-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.upgrade-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.upgrade-dots {
+  display: flex;
+  gap: 3px;
+  margin-top: 0.25rem;
+}
+.upgrade-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+}
+.upgrade-dot.filled {
+  background: var(--primary);
+}
+.bonus-intro {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+.bonus-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.bonus-btn {
+  padding: 0.75rem;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+  color: var(--text-primary);
+}
+.bonus-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--bg-surface);
+}
+.bonus-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.bonus-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.bonus-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.1rem;
+}
+.bonus-desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+.bonus-current {
+  font-size: 0.7rem;
+  color: var(--primary);
+}
+.bonus-points {
+  text-align: center;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+.bonus-points span {
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 3000;
+}
+.toast {
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  animation: slide-in 0.3s ease, fade-out 0.3s ease 2.7s forwards;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+.toast.success {
+  border-color: var(--success);
+  background: rgba(76, 175, 80, 0.2);
+}
+.toast.error {
+  border-color: var(--error);
+  background: rgba(244, 67, 54, 0.2);
+}
+.toast.info {
+  border-color: var(--primary);
+  background: rgba(0, 188, 212, 0.2);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  animation: fade-in 0.3s ease;
+}
+.modal.active {
+  display: flex;
+}
+.modal-content {
+  background: linear-gradient(
+    180deg,
+    var(--bg-card) 0%,
+    var(--bg-surface) 100%
+  );
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  text-align: center;
+  animation: scale-in 0.3s ease;
+  max-width: 320px;
+  box-shadow: var(--shadow-glow);
+}
+.modal-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  animation: bounce 1s ease infinite;
+}
+.modal-content h2 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.modal-content p {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.result-emoji {
+  font-size: 6rem;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
+}
+.result-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: var(--bg-deep);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+}
+.result-stat-row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-secondary);
+}
+.result-stat-val {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+@keyframes button-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px var(--primary-glow);
+  }
+  50% {
+    box-shadow: 0 0 35px var(--primary-glow);
+  }
+}
+@keyframes boat-float {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-50%) translateY(-3px) rotate(-2deg);
+  }
+  75% {
+    transform: translateX(-50%) translateY(-3px) rotate(2deg);
+  }
+}
+@keyframes boat-travel {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+@keyframes wave {
+  0%,
+  100% {
+    transform: translateX(0) scaleY(1);
+  }
+  50% {
+    transform: translateX(10px) scaleY(1.1);
+  }
+}
+@keyframes bubble-rise {
+  0% {
+    bottom: 0;
+    opacity: 0.6;
+    transform: translateX(0);
+  }
+  100% {
+    bottom: 100%;
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+@keyframes fish-swim {
+  0% {
+    left: -10%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    left: 110%;
+    opacity: 0;
+  }
+}
+@keyframes seaweed-sway {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+@keyframes cloud-float {
+  0% {
+    left: -20%;
+  }
+  100% {
+    left: 120%;
+  }
+}
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes scale-in {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes slide-in {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 1200px) {
+  .boat {
+    width: 200px;
+  }
+
+  .game-main {
+    grid-template-columns: 1fr;
+  }
+  .panel-left,
+  .panel-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .shop-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .boat {
+    top: 36%;
+    width: 160px;
+  }
+
+  .game-header h1 {
+    font-size: 1.75rem;
+  }
+  .panel-left,
+  .panel-right {
+    grid-template-columns: 1fr;
+  }
+  .bonus-grid {
+    grid-template-columns: 1fr;
+  }
+  .ocean-view {
+    height: 220px;
+  }
+  .minigame-container {
+    height: 60vh;
+    gap: 1rem;
+    flex-direction: row;
+  }
+  .fishing-bar {
+    width: 60px;
+  }
+  .minigame-header .fish-emoji {
+    font-size: 3rem;
+  }
+  .countdown {
+    font-size: 5rem;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* --- Estilos do Novo Mapa --- */
+.map-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0f172a; /* Fallback */
+  z-index: 2500;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.map-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+}
+
+/* Animação das linhas do mapa (Marching Ants) */
+@keyframes march {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+.marching-ants {
+  animation: march 1s linear infinite;
+}
+
+/* Ícones do Mapa */
+.map-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 10;
+}
+
+.map-node:hover {
+  transform: translate(-50%, -60%) scale(1.1);
+}
+
+.map-node.locked {
+  filter: grayscale(1);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.map-node-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.map-node:hover .map-node-icon,
+.map-node.active .map-node-icon {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px var(--primary-glow);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+/* Card de Detalhes (Slide Up) */
+.map-details-card {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  padding: 1.5rem;
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 20;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.map-details-card.active {
+  transform: translateY(0);
+}
+
+/* Efeitos de fundo */
+.map-bg-decoration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+.screen {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+}
+.hidden-screen {
+  display: none !important;
+}
+
+/* Map Specific Styles */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+}
+
+.map-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 20;
+}
+
+.map-node:hover {
+  transform: translate(-50%, -60%) scale(1.1);
+  z-index: 30;
+}
+
+.map-node .node-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.9);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.map-node.active .node-icon,
+.map-node:hover .node-icon {
+  border-color: #19a1e6;
+  box-shadow: 0 0 20px rgba(25, 161, 230, 0.4);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.map-node.active .node-icon {
+  background: linear-gradient(
+    135deg,
+    rgba(25, 161, 230, 0.2),
+    rgba(15, 23, 42, 0.95)
+  );
+}
+
+.map-node .node-label {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.map-node:hover .node-label,
+.map-node.active .node-label {
+  opacity: 1;
+  bottom: -32px;
+}
+
+.current-location-marker {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #19a1e6;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0f172a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  animation: bounce 2s infinite;
+}
+
+.map-lines-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes march {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.marching-ants {
+  animation: march 1s linear infinite;
+}
+
+.map-details-card {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(17, 28, 33, 0.98);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  padding: 24px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  transform: translateY(110%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 50;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.map-details-card.active {
+  transform: translateY(0);
+}
+
+.star-rating {
+  display: flex;
+  gap: 2px;
+}
+.star-rating span {
+  font-size: 16px;
+}
+.star-filled {
+  color: #fbbf24;
+  font-variation-settings: "FILL" 1;
+}
+.star-empty {
+  color: #4b5563;
+  font-variation-settings: "FILL" 0;
+}
+
+/* --- VISUAL UPGRADE - FISHING MECHANIC v2 --- */
+
+/* Ajuste no container principal para garantir tela cheia */
+.minigame-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    circle at center,
+    rgba(15, 23, 42, 0.4) 0%,
+    rgba(15, 23, 42, 0.95) 100%
+  );
+}
+
+.minigame-background {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url("assets/fish.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.minigame-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+
+/* Animação de entrada suave para o painel lateral */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Estilo da Zona de Captura quando está "Pegando" */
+#catch-zone {
+  transition: height 0.2s ease, background-color 0.1s;
+}
+
+#catch-zone.catching {
+  background-color: rgba(74, 222, 128, 0.4); /* Green tint */
+  border-color: rgba(74, 222, 128, 0.8);
+  box-shadow: 0 0 30px rgba(74, 222, 128, 0.5),
+    inset 0 0 10px rgba(74, 222, 128, 0.3);
+}
+
+/* Feedback visual na barra de pesca (Shake) */
+@keyframes shake-bar {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+.shaking {
+  animation: shake-bar 0.2s infinite;
+  border-color: rgba(239, 68, 68, 0.6) !important; /* Red border warning */
+}
+
+/* Partículas de bolhas no fundo */
+.bubble-particle {
+  position: absolute;
+  bottom: -20px;
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: bubble-rise-bg 6s infinite ease-in;
+  backdrop-filter: blur(1px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes bubble-rise-bg {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-120vh) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Cores dinâmicas da barra de progresso */
+#catch-progress-fill.low {
+  background: linear-gradient(to top, #ef4444, #fca5a5);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+}
+
+#catch-progress-fill.medium {
+  background: linear-gradient(to top, #eab308, #fde047);
+  box-shadow: 0 0 15px rgba(234, 179, 8, 0.6);
+}
+
+/* Remove a caixa branca antiga se ela ainda existir no CSS antigo */
+.fishing-minigame {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  max-width: none !important;
+  padding: 0 !important;
+}
+
+.heigh-auto {
+  height: 70%;
+}
+
+.font-fish {
+  font-size: 3.2rem !important;
+}
+
+/* --- MOBILE UI SYSTEM --- */
+
+/* Barra de Navegação Inferior */
+.mobile-nav-btn {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #5c8ab5;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.mobile-nav-btn.active {
+  color: #19a1e6;
+  background: rgba(25, 161, 230, 0.05);
+  position: relative;
+}
+
+.mobile-nav-btn.active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 3px;
+  background: #19a1e6;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 2px 8px rgba(25, 161, 230, 0.5);
+}
+
+.mobile-nav-btn .material-symbols-outlined {
+  font-size: 28px;
+}
+
+/* Lógica de Views Mobile */
+@media (max-width: 768px) {
+  /* Remove o Grid do Desktop */
+  .game-main {
+    display: block;
+    height: 100%;
+    padding-top: 1rem;
+  }
+
+  /* Esconde painéis que não estão ativos */
+  .mobile-view {
+    display: none !important;
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* Mostra apenas o ativo */
+  .mobile-view.active {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  /* Ajustes visuais */
+  .ocean-view {
+    height: 55vh; /* Mais alto no mobile */
+    max-height: 500px;
+  }
+
+  #game-container {
+    padding: 0 1rem;
+    max-width: 100%;
+  }
+
+  /* Ajuste para o botão do mapa interno não aparecer duplicado ou quebrar layout */
+  .area-selector-card #btn-open-map {
+    display: none; /* Usa o da navbar */
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Atualização Menu Mobile --- */
+
+/* Removemos a linha inferior padrão do botão de pesca, pois ele é redondo */
+.mobile-fish-btn.active::after {
+  display: none;
+}
+
+/* Ajuste fino para os botões normais */
+.mobile-nav-btn.active {
+  color: var(--primary);
+  background: transparent; /* Removemos o fundo para ficar mais limpo */
+}
+
+.mobile-nav-btn.active .material-symbols-outlined,
+.mobile-nav-btn.active span {
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(25, 161, 230, 0.3);
+}
+
+/* Animação suave para o botão central */
+.mobile-fish-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(25, 161, 230, 0.7);
+}
+
+.mobile-fish-btn:active {
+  transform: scale(0.95);
+}
+
+/* Ajuste de espaçamento para as novas descrições */
+.upgrade-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+  margin-bottom: 4px;
+  display: block; /* Garante que fique em uma nova linha */
+}
+
+.upgrade-item {
+  align-items: flex-start; /* Alinha o ícone e botão ao topo caso o texto seja longo */
+}
+
+.upgrade-icon {
+  margin-top: 4px; /* Pequeno ajuste visual se usar flex-start */
+}

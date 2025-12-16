@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pescaria Pixel - Master</title>
+    <meta
+      name="description"
+      content="Jogo de pesca relaxante com progressão roguelike"
+    />
+
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Noto+Sans:wght@400;500;700&family=Fredoka:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#19a1e6",
+              "primary-dark": "#127bb0",
+              "background-light": "#f6f7f8",
+              "background-dark": "#111c21",
+              "surface-dark": "#1e282f",
+              "surface-darker": "#151f25",
+            },
+            fontFamily: {
+              display: ["Plus Jakarta Sans", "sans-serif"],
+              body: ["Noto Sans", "sans-serif"],
+              game: ["Fredoka", "sans-serif"],
+            },
+            animation: {
+              "spin-slow": "spin 8s linear infinite",
+              "bounce-slow": "bounce 3s infinite",
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body
+    class="font-display antialiased text-white select-none bg-background-dark overflow-x-hidden"
+  >
+    <div
+      id="menu-screen"
+      class="screen relative flex h-screen w-full flex-col overflow-hidden bg-background-dark"
+    >
+      <div class="absolute inset-0 z-0">
+        <img
+          class="h-full w-full object-cover opacity-80"
+          src="assets/menu.png"
+          alt="Background"
+        />
+        <div
+          class="absolute inset-0 bg-gradient-to-b from-background-dark/40 via-transparent to-background-dark/95"
+        ></div>
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+      </div>
+
+      <div
+        class="relative z-10 flex h-full flex-col justify-between safe-area-inset"
+      >
+        <div class="flex w-full justify-between items-start p-4 pt-14 px-6">
+          <div class="w-20"></div>
+          <div
+            class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-dark/90 backdrop-blur-md border border-white/10 pl-3 pr-4 shadow-lg ring-1 ring-black/20"
+          >
+            <span class="material-symbols-outlined text-primary text-[20px]"
+              >account_circle</span
+            >
+            <p
+              class="text-white text-sm font-bold leading-normal tracking-wide"
+            >
+              Lvl <span id="menu-level-display">1</span> •
+              <span class="text-[#ffd700]" id="menu-money-display">$0</span>
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="flex flex-1 flex-col items-center justify-center w-full px-6 mb-8"
+        >
+          <div class="flex flex-col items-center mb-12 relative">
+            <span
+              class="icon-fish material-symbols-outlined text-primary text-7xl mb-2 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] animate-bounce"
+              style="animation-duration: 3s"
+              >phishing</span
+            >
+            <h1
+              class="text-white tracking-tight text-5xl font-extrabold leading-none text-center drop-shadow-2xl uppercase italic transform -rotate-2"
+            >
+              Pescaria<br /><span class="text-primary text-6xl">Pixel</span>
+            </h1>
+          </div>
+
+          <div class="flex w-full max-w-[320px] flex-col gap-4">
+            <button
+              id="btn-start-game"
+              class="relative group overflow-hidden w-full rounded-2xl bg-primary h-[4.5rem] px-5 flex items-center justify-center shadow-[0_6px_0_0_#127bb0] active:shadow-none active:translate-y-[6px] active:mb-[6px] transition-all duration-100 ease-out border-t border-white/20"
+            >
+              <span
+                class="material-symbols-outlined mr-3 text-white text-3xl drop-shadow-md"
+                >play_arrow</span
+              >
+              <div class="flex flex-col items-start text-left">
+                <span
+                  class="text-white text-xl font-black uppercase tracking-wider leading-none drop-shadow-sm"
+                  >Jogar</span
+                >
+                <span
+                  class="text-blue-100 text-[10px] font-bold tracking-widest uppercase opacity-90 mt-0.5"
+                  >Entrar no Mar</span
+                >
+              </div>
+            </button>
+
+            <button
+              id="btn-settings-menu"
+              class="group w-full rounded-xl bg-surface-dark hover:bg-[#25323b] h-14 px-5 flex items-center justify-between shadow-[0_4px_0_0_#111c21] border border-white/5 active:shadow-none active:translate-y-[4px] active:mb-[4px] transition-all duration-100 ease-out"
+            >
+              <div class="flex items-center">
+                <span
+                  class="material-symbols-outlined mr-3 text-gray-400 group-hover:text-primary transition-colors text-2xl"
+                  >settings</span
+                >
+                <span
+                  class="text-gray-200 font-bold uppercase tracking-wide group-hover:text-white transition-colors"
+                  >Configurações</span
+                >
+              </div>
+            </button>
+
+            <button
+              id="btn-tutorial-menu"
+              class="group w-full rounded-xl bg-surface-dark hover:bg-[#25323b] h-14 px-5 flex items-center justify-between shadow-[0_4px_0_0_#111c21] border border-white/5 active:shadow-none active:translate-y-[4px] active:mb-[4px] transition-all duration-100 ease-out"
+            >
+              <div class="flex items-center">
+                <span
+                  class="material-symbols-outlined mr-3 text-gray-400 group-hover:text-primary transition-colors text-2xl"
+                  >menu_book</span
+                >
+                <span
+                  class="text-gray-200 font-bold uppercase tracking-wide group-hover:text-white transition-colors"
+                  >Tutorial</span
+                >
+              </div>
+            </button>
+            <button
+              id="btn-multi-menu"
+              class="disabled group w-full rounded-xl bg-surface-dark hover:bg-[#25323b] h-14 px-5 flex items-center justify-between shadow-[0_4px_0_0_#111c21] border border-white/5 active:shadow-none"
+            >
+              <div class="flex items-center">
+                <span
+                  class="material-symbols-outlined mr-3 text-gray-400 group-hover:text-primary transition-colors text-2xl"
+                  >sports_kabaddi</span
+                >
+                <span
+                  class="text-gray-200 font-bold uppercase tracking-wide group-hover:text-white transition-colors"
+                  >Multiplayer</span
+                >
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="map-screen"
+      class="hidden-screen fixed inset-0 z-50 bg-background-dark"
+    >
+      <div class="relative h-full w-full overflow-hidden">
+        <div class="absolute inset-0 bg-[#1a4461]">
+          <div
+            class="absolute bottom-0 left-0 right-0 h-2/3 bg-[#112d42] skew-y-3 transform origin-bottom-right opacity-80"
+          ></div>
+          <div
+            class="absolute top-0 left-0 right-0 h-1/3 bg-[#2a6b96] opacity-30"
+          ></div>
+          <div
+            class="absolute inset-0 opacity-10"
+            style="
+              background-image: radial-gradient(#fff 1px, transparent 1px);
+              background-size: 20px 20px;
+            "
+          ></div>
+        </div>
+
+        <svg id="map-lines" class="map-lines-svg"></svg>
+
+        <div
+          class="absolute top-0 left-0 right-0 z-40 p-4 pt-safe-top bg-gradient-to-b from-black/80 to-transparent pointer-events-none"
+        >
+          <div class="flex items-center justify-between pointer-events-auto">
+            <button
+              id="btn-close-map"
+              class="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-dark/80 text-white backdrop-blur-md border border-white/10 active:scale-95 transition-transform"
+            >
+              <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h1
+              class="text-xl font-bold font-display text-white drop-shadow-md"
+            >
+              Mapa de Navegação
+            </h1>
+            <div class="w-10"></div>
+          </div>
+        </div>
+
+        <div
+          id="map-nodes-container"
+          class="absolute inset-0 z-30 pointer-events-none"
+        ></div>
+
+        <div id="map-details-card" class="map-details-card">
+          <div class="flex justify-center -mt-4 mb-4 opacity-30">
+            <div class="h-1.5 w-12 rounded-full bg-gray-400"></div>
+          </div>
+
+          <div class="flex items-start justify-between mb-6">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <h2
+                  id="map-detail-title"
+                  class="text-2xl font-bold font-display text-white"
+                >
+                  Nome da Área
+                </h2>
+                <span
+                  id="map-detail-badge"
+                  class="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded border border-primary/20 uppercase tracking-wide"
+                  >Selecionado</span
+                >
+              </div>
+              <div class="flex items-center gap-2">
+                <div id="map-detail-stars" class="star-rating"></div>
+                <span
+                  id="map-detail-difficulty"
+                  class="text-gray-400 text-xs font-medium"
+                  >Dificuldade</span
+                >
+              </div>
+            </div>
+            <div
+              class="flex flex-col items-end bg-black/20 p-2.5 rounded-xl border border-white/5"
+            >
+              <div
+                class="flex items-center gap-1 text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-0.5"
+              >
+                <span class="material-symbols-outlined text-xs">schedule</span>
+                Viagem
+              </div>
+              <span id="map-detail-time" class="text-white text-lg font-bold"
+                >0s</span
+              >
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 mb-6">
+            <div
+              class="bg-surface-dark/50 rounded-xl p-3 flex items-center gap-3 border border-white/5"
+            >
+              <div
+                class="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0"
+              >
+                <span class="material-symbols-outlined text-blue-400"
+                  >water</span
+                >
+              </div>
+              <div class="flex flex-col">
+                <span class="text-gray-400 text-[10px] uppercase font-bold"
+                  >Profundidade</span
+                >
+                <span id="map-detail-depth" class="text-white text-sm font-bold"
+                  >--</span
+                >
+              </div>
+            </div>
+            <div
+              class="bg-surface-dark/50 rounded-xl p-3 flex items-center gap-3 border border-white/5"
+            >
+              <div
+                class="h-10 w-10 rounded-full bg-orange-500/20 flex items-center justify-center shrink-0"
+              >
+                <span class="material-symbols-outlined text-orange-400"
+                  >set_meal</span
+                >
+              </div>
+              <div class="flex flex-col">
+                <span class="text-gray-400 text-[10px] uppercase font-bold"
+                  >Peixes</span
+                >
+                <span
+                  id="map-detail-fish-count"
+                  class="text-white text-sm font-bold"
+                  >Variados</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <button
+            id="btn-travel-confirm"
+            class="w-full bg-gradient-to-r from-primary to-blue-600 hover:to-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_4px_14px_0_rgba(25,161,230,0.39)] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
+          >
+            <span
+              class="material-symbols-outlined text-xl group-hover:animate-bounce"
+              >sailing</span
+            >
+            <span>Viajar para este Local</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="game-screen" class="hidden-screen font-game pb-24 md:pb-0">
+      <div id="game-container">
+        <header class="game-header relative md:block hidden">
+          <button
+            id="btn-return-menu"
+            class="absolute left-0 top-4 bg-[#132f4c] border border-[#1e4976] p-2 rounded-lg text-[#90caf9] hover:bg-[#173a5e] transition-colors"
+          >
+            <span class="material-symbols-outlined text-xl">arrow_back</span>
+          </button>
+          <h1>🎣 Pescaria Pixel</h1>
+          <p>Pesque, evolua e conquiste os mares!</p>
+        </header>
+
+        <main class="game-main">
+          <aside
+            class="panel panel-left mobile-view hidden md:flex"
+            id="mobile-view-stats"
+          >
+            <div class="card player-stats">
+              <div class="stats-header">
+                <div class="level-badge" id="player-level">1</div>
+                <div class="stats-info">
+                  <span class="label">Nível</span>
+                  <span class="value">Pescador</span>
+                </div>
+                <div class="money-display">
+                  <span class="label">Dinheiro</span>
+                  <span class="value gold" id="player-money">💰 $0</span>
+                </div>
+              </div>
+              <div class="xp-bar-container">
+                <div class="xp-bar-label">
+                  <span>XP</span>
+                  <span id="xp-text">0/100</span>
+                </div>
+                <div class="xp-bar">
+                  <div class="xp-bar-fill" id="xp-fill"></div>
+                </div>
+              </div>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <span class="stat-value" id="total-fish">0</span>
+                  <span class="stat-label">Peixes</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value" id="total-earned">$0</span>
+                  <span class="stat-label">Ganho</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card boat-inventory">
+              <div class="card-header">
+                <h3>🚤 Barco</h3>
+                <span class="capacity-badge" id="boat-capacity">0/10</span>
+              </div>
+              <div class="capacity-bar">
+                <div class="capacity-fill" id="capacity-fill"></div>
+              </div>
+              <div class="fish-grid" id="fish-inventory"></div>
+            </div>
+          </aside>
+
+          <section
+            class="panel panel-center mobile-view active flex"
+            id="mobile-view-game"
+          >
+            <div
+              class="md:hidden w-full flex justify-between items-center mb-4 px-2"
+            >
+              <div
+                class="flex items-center gap-2 bg-surface-dark py-1 px-3 rounded-full border border-white/10"
+              >
+                <span class="text-xs text-gray-400">Nvl</span>
+                <span class="font-bold text-white" id="mobile-level-display"
+                  >1</span
+                >
+              </div>
+              <div
+                class="bg-surface-dark py-1 px-3 rounded-full border border-white/10 text-[#ffd700] font-bold"
+              >
+                <span id="mobile-money-display">$0</span>
+              </div>
+            </div>
+
+            <div class="ocean-view" id="ocean-view">
+              <div class="sky"></div>
+              <div class="sun"></div>
+              <div class="clouds">
+                <div class="cloud cloud-1"></div>
+                <div class="cloud cloud-2"></div>
+              </div>
+              <div class="wave wave-1"></div>
+              <div class="wave wave-2"></div>
+              <div class="wave wave-3"></div>
+              <div class="underwater">
+                <div class="bubble bubble-1"></div>
+                <div class="bubble bubble-2"></div>
+                <div class="fish-swimming fish-swim-1">🐟</div>
+              </div>
+              <div class="boat" id="boat">
+                <img
+                  class="h-full w-full object-cover opacity-80"
+                  src="assets/2.png"
+                  alt="Boat"
+                />
+              </div>
+
+              <div class="area-badge" id="area-badge">
+                <span class="area-emoji">🏖️</span>
+                <span class="area-name">Costa Rasa</span>
+              </div>
+
+              <div class="status-bar" id="status-bar">
+                <p class="status-text" id="status-text">Pronto para pescar</p>
+                <div class="progress-bar" id="progress-bar">
+                  <div class="progress-fill" id="progress-fill"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="action-buttons">
+              <button class="btn btn-primary btn-fish" id="btn-fish">
+                <span>🎣</span> Pescar
+              </button>
+            </div>
+
+            <div
+              class="card area-selector-card mt-4 p-4 flex items-center justify-between"
+            >
+              <div>
+                <p class="text-xs text-[#5c8ab5] uppercase font-bold mb-1">
+                  Localização Atual
+                </p>
+                <div class="flex items-center gap-2">
+                  <span class="text-2xl" id="current-area-emoji-display"
+                    >🏖️</span
+                  >
+                  <h3 class="text-lg font-bold" id="current-area-name-display">
+                    Costa Rasa
+                  </h3>
+                </div>
+              </div>
+              <button
+                id="btn-open-map"
+                class="bg-[#19a1e6] hover:bg-[#127bb0] text-white p-3 rounded-xl shadow-lg transition-transform active:scale-95"
+              >
+                <span class="material-symbols-outlined text-2xl">map</span>
+              </button>
+            </div>
+          </section>
+
+          <aside
+            class="panel panel-right mobile-view hidden md:flex"
+            id="mobile-view-shop"
+          >
+            <div class="card shop-panel" id="shop-panel">
+              <div class="card-header">
+                <h3>🏪 Loja</h3>
+                <span class="gold" id="shop-money">💰 $0</span>
+              </div>
+
+              <div class="sell-section">
+                <div class="sell-header">
+                  <div>
+                    <p class="sell-title">Vender Peixes</p>
+                    <p class="sell-count" id="sell-count">0 peixes</p>
+                  </div>
+                  <span class="sell-value gold" id="sell-value">$0</span>
+                </div>
+                <button class="btn btn-gold btn-sell" id="btn-sell">
+                  <span class="sell-text">Vender Todos</span>
+                  <div class="sell-progress"></div>
+                </button>
+                <p class="sell-timer-text" id="sell-timer-text"></p>
+              </div>
+
+              <div class="upgrade-tabs">
+                <button class="tab-btn active" data-tab="rod">🎣 Vara</button>
+                <button class="tab-btn" data-tab="boat">🚤 Barco</button>
+                <button class="tab-btn" data-tab="bonuses">⭐ Bônus</button>
+              </div>
+
+              <div class="upgrade-content" id="upgrade-content">
+                <div class="tab-content active" id="tab-rod">
+                  <div class="upgrade-item" data-upgrade="depth">
+                    <div class="upgrade-icon">📏</div>
+                    <div class="upgrade-info">
+                      <p class="upgrade-name">Profundidade</p>
+                      <p class="upgrade-desc">
+                        Permite pescar em águas mais fundas e perigosas.
+                      </p>
+                      <div class="upgrade-dots" id="depth-dots"></div>
+                    </div>
+                    <button class="btn btn-upgrade" id="btn-depth">$50</button>
+                  </div>
+                  <div class="upgrade-item" data-upgrade="stability">
+                    <div class="upgrade-icon">🎯</div>
+                    <div class="upgrade-info">
+                      <p class="upgrade-name">Estabilidade</p>
+                      <p class="upgrade-desc">
+                        Aumenta o tamanho da barra e facilita a captura.
+                      </p>
+                      <div class="upgrade-dots" id="stability-dots"></div>
+                    </div>
+                    <button class="btn btn-upgrade" id="btn-stability">
+                      $40
+                    </button>
+                  </div>
+                  <div class="upgrade-item" data-upgrade="bait">
+                    <div class="upgrade-icon">🪱</div>
+                    <div class="upgrade-info">
+                      <p class="upgrade-name">Isca</p>
+                      <p class="upgrade-desc">
+                        Aumenta drasticamente a chance de peixes raros.
+                      </p>
+                      <div class="upgrade-dots" id="bait-dots"></div>
+                    </div>
+                    <button class="btn btn-upgrade" id="btn-bait">$60</button>
+                  </div>
+                </div>
+
+                <div class="tab-content" id="tab-boat">
+                  <div class="upgrade-item" data-upgrade="capacity">
+                    <div class="upgrade-icon">📦</div>
+                    <div class="upgrade-info">
+                      <p class="upgrade-name">Capacidade</p>
+                      <p class="upgrade-desc">
+                        Aumenta o espaço do inventário do barco.
+                      </p>
+                      <div class="upgrade-dots" id="capacity-dots"></div>
+                    </div>
+                    <button class="btn btn-upgrade" id="btn-capacity">
+                      $80
+                    </button>
+                  </div>
+                  <div class="upgrade-item" data-upgrade="speed">
+                    <div class="upgrade-icon">💨</div>
+                    <div class="upgrade-info">
+                      <p class="upgrade-name">Velocidade</p>
+                      <p class="upgrade-desc">
+                        Reduz o tempo de viagem entre as áreas do mapa.
+                      </p>
+                      <div class="upgrade-dots" id="speed-dots"></div>
+                    </div>
+                    <button class="btn btn-upgrade" id="btn-speed">$70</button>
+                  </div>
+                  <div class="upgrade-item" data-upgrade="sonar">
+                    <div class="upgrade-icon">📡</div>
+                    <div class="upgrade-info">
+                      <p class="upgrade-name">Sonar</p>
+                      <p class="upgrade-desc">
+                        Reduz o tempo necessário para encontrar um peixe.
+                      </p>
+                      <div class="upgrade-dots" id="sonar-dots"></div>
+                    </div>
+                    <button class="btn btn-upgrade" id="btn-sonar">$90</button>
+                  </div>
+                </div>
+
+                <div class="tab-content" id="tab-bonuses">
+                  <div class="bonus-grid">
+                    <button class="bonus-btn" id="bonus-time">
+                      <span class="bonus-icon">⚡</span>
+                      <p class="bonus-name">Ágil</p>
+                      <p class="bonus-desc">Viagem + rápida</p>
+                      <p class="bonus-current" id="time-bonus">+0%</p>
+                    </button>
+                    <button class="bonus-btn" id="bonus-xp">
+                      <span class="bonus-icon">📚</span>
+                      <p class="bonus-name">Aprendiz</p>
+                      <p class="bonus-desc">Mais XP ganho</p>
+                      <p class="bonus-current" id="xp-bonus">+0%</p>
+                    </button>
+                    <button class="bonus-btn" id="bonus-sell">
+                      <span class="bonus-icon">💰</span>
+                      <p class="bonus-name">Negociante</p>
+                      <p class="bonus-desc">Venda + cara</p>
+                      <p class="bonus-current" id="sell-bonus">+0%</p>
+                    </button>
+                    <button class="bonus-btn" id="bonus-rare">
+                      <span class="bonus-icon">🦅</span>
+                      <p class="bonus-name">Sorte</p>
+                      <p class="bonus-desc">Chance de Raros</p>
+                      <p class="bonus-current" id="rare-bonus">+0%</p>
+                    </button>
+                  </div>
+                  <p class="bonus-points mt-2 text-center text-sm">
+                    Pontos:
+                    <span id="bonus-points" class="font-bold text-[#ffc107]"
+                      >0</span
+                    >
+                  </p>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </main>
+        <nav
+          class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-surface-dark/95 backdrop-blur-md border-t border-white/10 grid grid-cols-5 z-50 pb-safe-bottom"
+        >
+          <button class="mobile-nav-btn group" data-target="stats">
+            <span
+              class="material-symbols-outlined mb-1 text-gray-400 group-[.active]:text-primary transition-colors"
+              >backpack</span
+            >
+            <span
+              class="text-[10px] font-bold uppercase text-gray-400 group-[.active]:text-primary transition-colors"
+              >Bolsa</span
+            >
+          </button>
+
+          <button class="mobile-nav-btn group" data-target="shop">
+            <span
+              class="material-symbols-outlined mb-1 text-gray-400 group-[.active]:text-primary transition-colors"
+              >storefront</span
+            >
+            <span
+              class="text-[10px] font-bold uppercase text-gray-400 group-[.active]:text-primary transition-colors"
+              >Loja</span
+            >
+          </button>
+
+          <div
+            class="relative flex justify-center items-center pointer-events-none"
+          >
+            <button
+              class="mobile-fish-btn pointer-events-auto absolute -top-8 h-16 w-16 rounded-full bg-gradient-to-b from-primary to-primary-dark border-[4px] border-[#132f4c] shadow-[0_0_20px_rgba(25,161,230,0.5)] flex items-center justify-center transition-transform active:scale-95 group"
+              data-target="game"
+            >
+              <span
+                class="material-symbols-outlined text-white text-4xl drop-shadow-md"
+                >phishing</span
+              >
+            </button>
+            <span
+              class="absolute bottom-1 text-[10px] font-bold uppercase text-primary tracking-widest"
+              >Pescar</span
+            >
+          </div>
+
+          <button class="mobile-nav-btn group" id="btn-mobile-map-nav">
+            <span
+              class="material-symbols-outlined mb-1 text-gray-400 transition-colors"
+              >map</span
+            >
+            <span
+              class="text-[10px] font-bold uppercase text-gray-400 transition-colors"
+              >Mapa</span
+            >
+          </button>
+
+          <button class="mobile-nav-btn group" id="btn-mobile-menu-nav">
+            <span
+              class="material-symbols-outlined mb-1 text-gray-400 transition-colors"
+              >menu</span
+            >
+            <span
+              class="text-[10px] font-bold uppercase text-gray-400 transition-colors"
+              >Menu</span
+            >
+          </button>
+        </nav>
+      </div>
+    </div>
+    <div
+      id="tutorial-screen"
+      class="hidden-screen relative w-full min-h-screen bg-background-dark p-6 overflow-y-auto"
+    >
+      <div class="max-w-2xl mx-auto space-y-6 pb-20">
+        <div
+          class="flex items-center justify-between mb-8 sticky top-0 bg-background-dark/95 backdrop-blur-sm py-4 z-20 border-b border-white/10"
+        >
+          <h2 class="text-3xl font-black uppercase text-primary">Como Jogar</h2>
+          <button
+            id="btn-back-tutorial"
+            class="bg-surface-dark p-2 rounded-full hover:bg-surface-darker border border-white/10"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div
+            class="bg-surface-dark p-6 rounded-2xl border border-white/5 shadow-lg"
+          >
+            <h3 class="font-bold text-white mb-2">1. Pesca</h3>
+            <p class="text-gray-400">
+              Use o mapa para viajar. Clique em pescar. Quando o peixe morder,
+              vença o minigame mantendo o peixe na barra verde.
+            </p>
+          </div>
+          <div
+            class="bg-surface-dark p-6 rounded-2xl border border-white/5 shadow-lg"
+          >
+            <h3 class="font-bold text-white mb-2">2. Evolução</h3>
+            <p class="text-gray-400">
+              Venda peixes para ganhar dinheiro e melhore seu equipamento na
+              Loja. Suba de nível para ganhar bônus.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="settings-screen"
+      class="hidden-screen relative w-full min-h-screen bg-background-dark p-6"
+    >
+      <div class="max-w-md mx-auto h-full flex flex-col">
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-2xl font-black uppercase text-white">
+            Configurações
+          </h2>
+          <button
+            id="btn-back-settings"
+            class="bg-surface-dark p-2 rounded-full hover:bg-surface-darker border border-white/10"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div
+          class="bg-red-500/10 border border-red-500/20 rounded-2xl p-5 mt-auto"
+        >
+          <h3 class="text-red-400 font-bold mb-2">Zona de Perigo</h3>
+          <button
+            id="btn-reset-save"
+            class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl shadow-lg"
+          >
+            Apagar Progresso
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+    <div class="modal" id="level-up-modal">
+      <div class="modal-content">
+        <div class="modal-icon">🎉</div>
+        <h2>Nível <span id="new-level">2</span>!</h2>
+        <p>Você ganhou 1 ponto de bônus!</p>
+        <button class="btn btn-primary" id="btn-close-modal">Continuar</button>
+      </div>
+    </div>
+
+    <div class="minigame-overlay" id="minigame-overlay">
+      <div
+        class="absolute inset-0 z-0 bg-black/60 backdrop-blur-sm transition-all duration-500 minigame-background"
+      ></div>
+
+      <div class="countdown" id="countdown">3</div>
+
+      <div
+        class="relative z-10 flex w-full h-full items-center justify-center gap-12 px-8"
+      >
+        <div
+          class="hidden md:flex flex-col gap-4 min-w-[250px] animate-slide-in-left"
+        >
+          <div
+            class="bg-surface-dark/90 backdrop-blur-md border border-white/10 p-5 rounded-2xl shadow-2xl relative overflow-hidden group"
+          >
+            <div class="absolute top-0 right-0 p-3 opacity-10">
+              <span class="material-symbols-outlined text-6xl">phishing</span>
+            </div>
+
+            <p
+              class="text-primary text-xs font-bold uppercase tracking-widest mb-2"
+            >
+              Alvo Identificado
+            </p>
+            <div class="flex items-center gap-4">
+              <div class="relative">
+                <span
+                  id="minigame-fish-emoji"
+                  class="text-5xl filter drop-shadow-lg transform transition-transform group-hover:scale-110 duration-300 inline-block"
+                  >🐟</span
+                >
+              </div>
+              <div>
+                <h3
+                  id="minigame-fish-name"
+                  class="text-2xl font-black text-white font-display leading-none mb-1"
+                >
+                  Peixe
+                </h3>
+                <div
+                  id="minigame-difficulty"
+                  class="text-yellow-400 text-sm tracking-widest"
+                >
+                  ⭐⭐⭐
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-black/40 backdrop-blur-md rounded-xl p-3 border border-white/5 flex items-center gap-3"
+          >
+            <p class="text-white/60 text-xs font-bold uppercase">
+              Segure para subir
+            </p>
+          </div>
+        </div>
+
+        <div class="relative flex gap-6 items-center heigh-auto">
+          <div
+            class="h-full w-6 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 relative overflow-hidden shadow-2xl"
+          >
+            <div class="absolute inset-0 bg-white/5"></div>
+            <div
+              id="catch-progress-fill"
+              class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-green-600 via-emerald-400 to-green-300 transition-all duration-100 ease-linear shadow-[0_0_15px_rgba(16,185,129,0.6)]"
+              style="height: 0%"
+            ></div>
+          </div>
+
+          <div
+            id="fishing-bar"
+            class="h-full w-20 bg-[#0f172a]/90 backdrop-blur-xl rounded-full border-2 border-[#334155] relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] ring-4 ring-black/20"
+          >
+            <div
+              class="absolute inset-0 opacity-10"
+              style="
+                background-image: linear-gradient(#fff 1px, transparent 1px),
+                  linear-gradient(90deg, #fff 1px, transparent 1px);
+                background-size: 30px 30px;
+              "
+            ></div>
+
+            <div
+              id="catch-zone"
+              class="absolute left-1 right-1 h-[25%] rounded-lg bg-primary/30 border border-primary/50 shadow-[0_0_20px_rgba(25,161,230,0.4)] z-10 flex items-center justify-center backdrop-blur-sm transition-none will-change-top"
+              style="top: 50%"
+            >
+              <div
+                class="w-full h-[1px] bg-primary/60 shadow-[0_0_5px_#fff]"
+              ></div>
+            </div>
+
+            <div
+              id="fish-marker"
+              class="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-none will-change-top"
+              style="top: 50%"
+            >
+              <div
+                class="relative transition-transform duration-200"
+                id="fish-marker-inner"
+              >
+                <span
+                  class="text-3xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-fish"
+                  >🐟</span
+                >
+                <div
+                  class="absolute -right-2 top-1 w-1.5 h-1.5 bg-white/60 rounded-full animate-ping"
+                ></div>
+              </div>
+            </div>
+
+            <div
+              class="absolute top-3 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-red-500/30"
+            ></div>
+            <div
+              class="absolute bottom-3 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-red-500/30"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal result-modal" id="result-modal">
+      <div class="modal-content result-content">
+        <div id="result-emoji" class="result-emoji"></div>
+        <h2 id="result-title"></h2>
+        <p id="result-desc"></p>
+        <div id="result-stats" class="result-stats"></div>
+        <button class="btn btn-primary" id="btn-close-result">Continuar</button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
