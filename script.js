@@ -7,6 +7,7 @@ const FISH_DATA = [
     difficulty: 1,
     minDepth: 1,
     emoji: "🐟",
+    image: "assets/fish/sardine.png",
   },
   {
     id: "anchovy",
@@ -16,6 +17,7 @@ const FISH_DATA = [
     difficulty: 1,
     minDepth: 1,
     emoji: "🐟",
+    image: "assets/fish/anchovy.png",
   },
   {
     id: "herring",
@@ -25,6 +27,7 @@ const FISH_DATA = [
     difficulty: 2,
     minDepth: 1,
     emoji: "🐟",
+    image: "assets/fish/herring.png",
   },
   {
     id: "mackerel",
@@ -34,6 +37,7 @@ const FISH_DATA = [
     difficulty: 2,
     minDepth: 1,
     emoji: "🐠",
+    image: "assets/fish/mackerel.png",
   },
   {
     id: "bass",
@@ -43,6 +47,7 @@ const FISH_DATA = [
     difficulty: 3,
     minDepth: 2,
     emoji: "🐠",
+    image: "assets/fish/bass.png",
   },
   {
     id: "trout",
@@ -52,6 +57,7 @@ const FISH_DATA = [
     difficulty: 4,
     minDepth: 2,
     emoji: "🐠",
+    image: "assets/fish/trout.png",
   },
   {
     id: "salmon",
@@ -61,6 +67,7 @@ const FISH_DATA = [
     difficulty: 4,
     minDepth: 3,
     emoji: "🐠",
+    image: "assets/fish/salmon.png",
   },
   {
     id: "tuna",
@@ -70,6 +77,7 @@ const FISH_DATA = [
     difficulty: 5,
     minDepth: 3,
     emoji: "🐟",
+    image: "assets/fish/tuna.png",
   },
   {
     id: "swordfish",
@@ -79,6 +87,7 @@ const FISH_DATA = [
     difficulty: 6,
     minDepth: 5,
     emoji: "🗡️",
+    image: "assets/fish/swordfish.png",
   },
   {
     id: "octopus",
@@ -88,6 +97,7 @@ const FISH_DATA = [
     difficulty: 7,
     minDepth: 5,
     emoji: "🐙",
+    image: "assets/fish/octopus.png",
   },
   {
     id: "lobster",
@@ -97,6 +107,7 @@ const FISH_DATA = [
     difficulty: 7,
     minDepth: 6,
     emoji: "🦞",
+    image: "assets/fish/lobster.png",
   },
   {
     id: "shark",
@@ -106,6 +117,7 @@ const FISH_DATA = [
     difficulty: 8,
     minDepth: 7,
     emoji: "🦈",
+    image: "assets/fish/shark.png",
   },
   {
     id: "whale",
@@ -115,6 +127,7 @@ const FISH_DATA = [
     difficulty: 9,
     minDepth: 8,
     emoji: "🐋",
+    image: "assets/fish/whale.png",
   },
   {
     id: "kraken",
@@ -124,6 +137,7 @@ const FISH_DATA = [
     difficulty: 10,
     minDepth: 9,
     emoji: "🦑",
+    image: "assets/fish/kraken.png",
   },
   {
     id: "mermaid_fish",
@@ -133,6 +147,7 @@ const FISH_DATA = [
     difficulty: 10,
     minDepth: 10,
     emoji: "✨",
+    image: "assets/fish/mermaid_fish.gif",
   },
 ];
 
@@ -167,7 +182,7 @@ const AREAS = [
     travelTime: 12,
     searchTime: 5,
     difficulty: 3,
-    coordinates: { top: 35, left: 70 },
+    coordinates: { top: 28, left: 83 },
     icon: "scuba_diving",
   },
   {
@@ -189,7 +204,7 @@ const AREAS = [
     travelTime: 25,
     searchTime: 10,
     difficulty: 5,
-    coordinates: { top: 52, left: 82 },
+    coordinates: { top: 48, left: 82 },
     icon: "visibility",
   },
 ];
@@ -216,9 +231,24 @@ let gameState = {
   boat: { capacity: 10, speed: 1, sonar: 1 },
   bonuses: { time: 0, xp: 0, sell: 0, rare: 0 },
   inventory: [],
+  caughtSpecies: [],
   currentArea: AREAS[0],
   phase: "idle",
   isSelling: false,
+};
+
+const BALANCE = {
+  baseDifficulty: 0.6, // Global: menor = mais fácil (Item 1)
+  baseSellTime: 15, // Tempo de venda reduzido para 15s (Item 2)
+  xpMultiplier: 3, // Progressão de XP mais rápida (Item 5)
+  firstCatchXP: 100, // Bônus para espécie nova (Item 6)
+  bonusValues: {
+    // Valores dos bônus por nível (Item 5 e 7)
+    time: 10, // % redução
+    xp: 20, // % bônus
+    sell: 15, // % valor
+    rare: 8, // % chance
+  },
 };
 
 function loadGame() {
@@ -401,12 +431,14 @@ function updateUI() {
 
 function updateFishInventory() {
   if (gameState.inventory.length === 0) {
-    elements.fishInventory.innerHTML = `<div class="empty-boat"><span>🎣</span><p>Barco vazio</p><p class="small">Vá pescar!</p></div>`;
+    elements.fishInventory.innerHTML = `<div class="empty-boat"><span>🎣</span><p>Barco vazio</p></div>`;
   } else {
     elements.fishInventory.innerHTML = gameState.inventory
       .map(
         (fish) =>
-          `<div class="fish-item ${fish.rarity}" title="${fish.name} - $${fish.price}">${fish.emoji}</div>`
+          `<div class="fish-item ${fish.rarity}" title="${fish.name}">
+            <img src="${fish.image}" class="w-8 h-8 object-contain">
+          </div>`
       )
       .join("");
   }
@@ -491,11 +523,26 @@ function updateBonuses() {
 }
 
 function showToast(message, type = "info") {
-  const toast = document.createElement("div");
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  elements.toastContainer.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+  const modal = document.getElementById("message-modal");
+  const title = document.getElementById("msg-modal-title");
+  const body = document.getElementById("msg-modal-body");
+  const icon = document.getElementById("msg-modal-icon");
+
+  // Customização baseada no tipo
+  const configs = {
+    success: { title: "Sucesso!", icon: "✅" },
+    error: { title: "Ops!", icon: "❌" },
+    info: { title: "Informação", icon: "ℹ️" },
+    upgrade: { title: "Melhoria!", icon: "🛠️" },
+  };
+
+  const config = configs[type] || configs.info;
+
+  title.textContent = config.title;
+  icon.textContent = config.icon;
+  body.textContent = message;
+
+  modal.classList.add("active");
 }
 
 function getTravelTime(area) {
@@ -554,29 +601,24 @@ function renderMapNodes() {
 
 function drawMapLines() {
   const svg = elements.map.svg;
-  svg.innerHTML = "";
-  const points = AREAS.map((a) => a.coordinates);
+  svg.innerHTML = ""; // Limpa linhas anteriores
 
-  // Draw lines connecting sequential areas
-  for (let i = 0; i < points.length - 1; i++) {
-    const start = points[i];
-    const end = points[i + 1];
+  // Percorre as áreas para conectar o ponto A ao ponto B
+  for (let i = 0; i < AREAS.length - 1; i++) {
+    const startArea = AREAS[i];
+    const endArea = AREAS[i + 1];
 
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    // Control point for curve
-    const cx = (start.left + end.left) / 2;
-    const cy = (start.top + end.top) / 2 - 10; // slightly curved up
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
 
-    const d = `M ${start.left}% ${start.top}% Q ${cx}% ${cy}% ${end.left}% ${end.top}%`;
+    // Define as coordenadas baseadas na porcentagem definida no objeto AREAS
+    line.setAttribute("x1", `${startArea.coordinates.left}%`);
+    line.setAttribute("y1", `${startArea.coordinates.top}%`);
+    line.setAttribute("x2", `${endArea.coordinates.left}%`);
+    line.setAttribute("y2", `${endArea.coordinates.top}%`);
 
-    // path.setAttribute("d", d);
-    path.setAttribute("fill", "none");
-    path.setAttribute("stroke", "#19a1e6");
-    path.setAttribute("stroke-width", "2");
-    path.setAttribute("stroke-dasharray", "6 4");
-    path.setAttribute("class", "marching-ants opacity-60");
+    line.setAttribute("class", "map-route-line");
 
-    svg.appendChild(path);
+    svg.appendChild(line);
   }
 }
 
@@ -586,7 +628,6 @@ function selectMapArea(area) {
   elements.map.title.textContent = area.name;
   elements.map.time.textContent = `${getTravelTime(area).toFixed(1)}s`;
 
-  // Difficulty Stars
   let starsHtml = "";
   for (let i = 0; i < 5; i++) {
     if (i < area.difficulty)
@@ -619,8 +660,6 @@ elements.map.btnTravel.addEventListener("click", () => {
     elements.map.card.classList.remove("active");
     showScreen("game");
     updateUI();
-
-    // MUDANÇA AQUI: Chama a sequência de viagem
     startTravelSequence();
   }
 });
@@ -671,9 +710,17 @@ function selectRandomFish() {
   return availableFish[Math.floor(Math.random() * availableFish.length)];
 }
 
-function addXP(amount) {
+function addXP(amount, fishId = null) {
   const xpBonus = 1 + gameState.bonuses.xp / 100;
-  const xpGain = Math.floor(amount * xpBonus);
+  let xpGain = Math.floor(amount * xpBonus * BALANCE.xpMultiplier);
+
+  // Bônus de Primeira Captura
+  if (fishId && !gameState.caughtSpecies.includes(fishId)) {
+    gameState.caughtSpecies.push(fishId);
+    xpGain += BALANCE.firstCatchXP;
+    showToast("✨ Nova Espécie Descoberta! +100 XP", "info");
+  }
+
   gameState.xp += xpGain;
   const xpForLevel = XP_PER_LEVEL * gameState.level;
   if (gameState.xp >= xpForLevel) {
@@ -684,75 +731,87 @@ function addXP(amount) {
     elements.levelUpModal.classList.add("active");
   }
 }
+// --- NEW ANIMATION UTILITY (OPTIMIZATION) ---
+// Substitui setInterval por requestAnimationFrame para movimentos suaves
+let currentAnimation = null;
 
-let phaseInterval = null;
+function animateProgress(durationMs, onUpdate, onComplete) {
+  if (currentAnimation) cancelAnimationFrame(currentAnimation);
+
+  const startTime = performance.now();
+
+  function step(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / durationMs, 1);
+
+    onUpdate(progress * 100);
+
+    if (progress < 1) {
+      currentAnimation = requestAnimationFrame(step);
+    } else {
+      currentAnimation = null;
+      if (onComplete) onComplete();
+    }
+  }
+
+  currentAnimation = requestAnimationFrame(step);
+}
+
+function stopAnimation() {
+  if (currentAnimation) {
+    cancelAnimationFrame(currentAnimation);
+    currentAnimation = null;
+  }
+}
 
 function startFishing() {
   if (gameState.phase !== "idle") return;
-  if (gameState.inventory.length >= gameState.boat.capacity) {
-    showToast("Barco cheio! Venda seus peixes.", "error");
-    return;
-  }
-  if (phaseInterval) clearInterval(phaseInterval);
-  gameState.phase = "traveling";
-  elements.boat.classList.add("traveling");
-  elements.progressBar.classList.add("active");
-  elements.statusText.textContent = `Viajando para ${gameState.currentArea.name}...`;
-  elements.statusText.className = "status-text traveling";
-  const travelTime = getTravelTime(gameState.currentArea);
-  let progress = 0;
-  updateUI();
-  phaseInterval = setInterval(() => {
-    progress += 100 / (travelTime * 10);
-    elements.progressFill.style.width = `${Math.min(100, progress)}%`;
-    if (progress >= 100) {
-      clearInterval(phaseInterval);
-      startSearching();
-    }
-  }, 100);
+  startTravelSequence(); // Reutiliza lógica
 }
 
 function startTravelSequence() {
-  if (gameState.phase !== "idle") return;
+  if (gameState.isSelling || gameState.phase === "selling") {
+    showToast("Aguarde a venda terminar!", "error");
+    return;
+  }
 
   if (gameState.inventory.length >= gameState.boat.capacity) {
     showToast("Barco cheio! Venda seus peixes.", "error");
     return;
   }
 
-  if (phaseInterval) clearInterval(phaseInterval);
+  stopAnimation();
 
-  // Configura fase de viagem
   gameState.phase = "traveling";
   elements.boat.classList.add("traveling");
   elements.progressBar.classList.add("active");
   elements.statusText.textContent = `Viajando para ${gameState.currentArea.name}...`;
   elements.statusText.className = "status-text traveling";
 
-  const travelTime = getTravelTime(gameState.currentArea);
-  let progress = 0;
-
+  const travelTimeMs = getTravelTime(gameState.currentArea) * 1000;
   updateUI();
 
-  phaseInterval = setInterval(() => {
-    progress += 100 / (travelTime * 10);
-    elements.progressFill.style.width = `${Math.min(100, progress)}%`;
-    if (progress >= 100) {
-      clearInterval(phaseInterval);
-      startSearching(); // Ao terminar a viagem, começa a buscar
+  animateProgress(
+    travelTimeMs,
+    (percent) => {
+      elements.progressFill.style.width = `${percent}%`;
+    },
+    () => {
+      startSearching();
     }
-  }, 100);
+  );
 }
 
 function startLocalFishing() {
-  if (gameState.phase !== "idle") return;
+  if (gameState.isSelling || gameState.phase === "selling") {
+    showToast("Aguarde a venda terminar!", "error");
+    return;
+  }
 
   if (gameState.inventory.length >= gameState.boat.capacity) {
     showToast("Barco cheio! Venda seus peixes.", "error");
     return;
   }
-
-  // Pula a animação de viagem e vai direto para a busca
   startSearching();
 }
 
@@ -762,14 +821,16 @@ function startSearching() {
   elements.statusText.textContent = "Procurando peixes...";
   elements.statusText.className = "status-text searching";
   elements.progressFill.style.width = "0%";
-  const searchTime = getSearchTime();
-  let progress = 0;
-  if (phaseInterval) clearInterval(phaseInterval);
-  phaseInterval = setInterval(() => {
-    progress += 100 / (searchTime * 10);
-    elements.progressFill.style.width = `${Math.min(100, progress)}%`;
-    if (progress >= 100) {
-      clearInterval(phaseInterval);
+
+  const searchTimeMs = getSearchTime() * 1000;
+  stopAnimation();
+
+  animateProgress(
+    searchTimeMs,
+    (percent) => {
+      elements.progressFill.style.width = `${percent}%`;
+    },
+    () => {
       elements.statusText.textContent = "🎣 PEIXE ENCONTRADO!";
       elements.statusText.classList.add("pulse");
       setTimeout(() => {
@@ -777,14 +838,25 @@ function startSearching() {
         startCountdown();
       }, 1000);
     }
-  }, 100);
+  );
 }
 
 function startCountdown() {
+  // Limpa a UI do peixe anterior antes de mostrar o overlay
+  elements.minigameFishEmoji.innerHTML = "";
+  elements.minigameFishName.textContent = "Calculando...";
+  elements.minigameDifficulty.innerHTML = "";
+
+  // Limpa a imagem dentro da barra de pesca também
+  const fishMarkerInner = document.getElementById("fish-marker-inner");
+  if (fishMarkerInner) fishMarkerInner.innerHTML = "";
+
   elements.minigameOverlay.classList.add("active");
   elements.countdown.classList.add("active");
+
   let count = 3;
   elements.countdown.textContent = count;
+
   const countInterval = setInterval(() => {
     count--;
     if (count > 0) {
@@ -795,11 +867,13 @@ function startCountdown() {
       setTimeout(() => {
         elements.countdown.classList.remove("active");
         elements.minigameOverlay.classList.add("game-active");
-        startMinigame();
+        startMinigame(); // Só aqui o novo peixe é definido e desenhado
       }, 500);
     }
   }, 500);
 }
+
+// --- OPTIMIZED MINIGAME LOGIC ---
 
 let currentFish = null;
 let minigameActive = false;
@@ -808,41 +882,40 @@ let zonePosition = 50;
 let fishPosition = 50;
 let fishVelocity = 0;
 let fishDirection = 1;
-let catchProgress = 40;
+let catchProgress = 30; // Começa em 30%
 let minigameLoop = null;
 let minigameStartTime = 0;
 
-// --- ATUALIZAÇÃO DA LÓGICA DO MINIGAME ---
+// Variables to avoid layout thrashing
+let cachedFishMarkerInner = null;
 
 function startMinigame() {
   gameState.phase = "fishing";
+  currentFish = selectRandomFish(); // Seleciona o novo peixe
 
-  // Setup dos dados do peixe
-  currentFish = selectRandomFish();
-
-  // Atualiza HUD Lateral
-  elements.minigameFishEmoji.textContent = currentFish.emoji;
+  // Define os elementos visuais com as IMAGENS
+  elements.minigameFishEmoji.innerHTML = `<img src="${currentFish.image}" class="w-20 h-20 object-contain mx-auto">`;
   elements.minigameFishName.textContent = currentFish.name;
   elements.minigameDifficulty.innerHTML = getDifficultyStars(
     currentFish.difficulty
-  ); // Helper function abaixo
+  );
 
-  // Setup do visual da barra
-  const fishMarkerInner = document.querySelector("#fish-marker-inner span");
-  if (fishMarkerInner) fishMarkerInner.textContent = currentFish.emoji;
+  const fishInnerContainer = document.getElementById("fish-marker-inner");
+  if (fishInnerContainer) {
+    fishInnerContainer.innerHTML = `<img src="${currentFish.image}" class="w-16 h-16 object-contain">`;
+  }
 
-  // Reset de variáveis físicas
+  // Reset de variáveis de controle
   zonePosition = 50;
   fishPosition = 50;
   fishVelocity = 0;
   fishDirection = 1;
-  catchProgress = 30; // Começa um pouco mais baixo para dar tensão
+  catchProgress = 30;
   isHolding = false;
   minigameActive = true;
   minigameStartTime = performance.now();
 
-  // Ajuste do tamanho da barra baseado na estabilidade (RPG Element)
-  const baseZoneHeight = 20; // Em porcentagem agora, para facilitar CSS responsiveness
+  const baseZoneHeight = 20;
   const bonusHeight = (gameState.rod.stability - 1) * 1.5;
   const finalHeightPct = Math.min(35, baseZoneHeight + bonusHeight);
   elements.catchZone.style.height = `${finalHeightPct}%`;
@@ -852,116 +925,66 @@ function startMinigame() {
   function gameLoop(currentTime) {
     if (!minigameActive) return;
 
-    const deltaTime = (currentTime - lastTime) / 1000;
+    const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
     lastTime = currentTime;
 
-    // Warmup: 1 segundo inicial para o jogador se preparar
     const isWarmup = currentTime - minigameStartTime < 1000;
 
-    // --- LÓGICA DO PEIXE (IA) ---
+    // --- Lógica do Peixe ---
     const difficulty = Math.max(
       1,
-      currentFish.difficulty - Math.floor(gameState.rod.stability / 3)
+      currentFish.difficulty * BALANCE.baseDifficulty -
+        gameState.rod.stability / 4
     );
 
     if (!isWarmup) {
-      // Chance do peixe mudar de direção
-      const changeChance = 0.02 + difficulty * 0.005;
-
-      if (Math.random() < changeChance) {
+      if (Math.random() < 0.02 + difficulty * 0.005) {
         fishDirection = Math.random() > 0.5 ? 1 : -1;
-        // Velocidade baseada na dificuldade
         fishVelocity = (Math.random() * 100 + 50) * (difficulty / 3);
       }
-
-      // Aplica movimento
       fishPosition += fishVelocity * fishDirection * deltaTime;
-
-      // Colisão com as paredes (quica)
       if (fishPosition <= 0 || fishPosition >= 100) {
         fishDirection *= -1;
         fishPosition = Math.max(0, Math.min(100, fishPosition));
       }
-    } else {
-      // Durante warmup, peixe fica no meio
-      fishPosition = 50;
     }
 
-    // --- LÓGICA DO JOGADOR (Física da Barra) ---
+    // --- Lógica da Barra do Jogador ---
     const gravity = 75;
-    const lift = -185; // Velocidade de subida
-    const velocity = isHolding ? lift : gravity;
-
-    zonePosition += velocity * deltaTime;
+    const lift = -185;
+    zonePosition += (isHolding ? lift : gravity) * deltaTime;
     zonePosition = Math.max(0, Math.min(100, zonePosition));
 
-    const barContainerHeight = elements.fishingBar.clientHeight;
-    const zoneContainerHeight = elements.catchZone.clientHeight;
-
+    // --- Atualização Visual (CORREÇÃO DO ERRO DE DEFINIÇÃO) ---
     const maxTop = 100 - finalHeightPct;
-    const visualZoneTop = (zonePosition / 100) * maxTop;
+    elements.catchZone.style.top = `${(zonePosition / 100) * maxTop}%`;
+    elements.fishMarker.style.top = `${Math.max(
+      5,
+      Math.min(95, fishPosition)
+    )}%`;
 
-    elements.catchZone.style.top = `${visualZoneTop}%`;
-
-    // 2. Marcador do Peixe
-    // O peixe é apenas um ponto, então pode ir de 0 a 100% (menos um offset visual)
-    const visualFishTop = fishPosition;
-    // Ajuste fino para o peixe não sair da borda visualmente (padding)
-    const clampedFishTop = Math.max(5, Math.min(95, visualFishTop));
-    elements.fishMarker.style.top = `${clampedFishTop}%`;
-
-    // Visual: Rotação do peixe baseada na direção (Flip horizontal)
-    const fishInner = document.getElementById("fish-marker-inner");
-    if (fishInner) {
-      // Se a barra é vertical, o peixe nada para os lados? Visualmente sim.
-      // Se fishDirection for 1 (descendo/positive) ou -1.
-      // Vamos fazer ele "olhar" levemente para cima ou baixo ou dar um tilt.
-      // Melhor: Tilt de 45 graus quando move rápido
-      const tilt = fishDirection * 20;
-      fishInner.style.transform = `rotate(${tilt}deg) scaleX(${
-        fishDirection > 0 ? 1 : -1
-      })`;
+    // Re-declaramos ou acessamos fishInnerContainer aqui para evitar o ReferenceError
+    const currentMarker = document.getElementById("fish-marker-inner");
+    if (currentMarker) {
+      currentMarker.style.transform = `scaleX(${fishDirection > 0 ? 1 : -1})`;
     }
 
-    const zoneTopVal = visualZoneTop;
-    const zoneBottomVal = visualZoneTop + finalHeightPct;
-
+    // Colisão e Progresso
+    const visualZoneTop = (zonePosition / 100) * maxTop;
     const isInZone =
-      clampedFishTop >= zoneTopVal && clampedFishTop <= zoneBottomVal;
+      fishPosition >= visualZoneTop &&
+      fishPosition <= visualZoneTop + finalHeightPct;
 
     elements.catchZone.classList.toggle("catching", isInZone);
-
-    // Taxa de captura
-    const changeRate = isInZone ? 0.4 : -0.25; // Ajuste de dificuldade aqui
-
-    if (!isWarmup || isInZone) {
-      catchProgress = Math.max(0, Math.min(100, catchProgress + changeRate));
-    }
-
-    // Atualiza barra de progresso lateral
+    catchProgress = Math.max(
+      0,
+      Math.min(100, catchProgress + (isInZone ? 0.4 : -0.25))
+    );
     elements.catchProgressFill.style.height = `${catchProgress}%`;
 
-    // Classes de cor e efeito de tremor (Shaking)
-    elements.catchProgressFill.classList.remove("low", "medium");
-    elements.fishingBar.classList.remove("shaking");
-
-    if (catchProgress < 30) {
-      elements.catchProgressFill.classList.add("low");
-      if (!isInZone) elements.fishingBar.classList.add("shaking"); // Treme se estiver perdendo e fora da zona
-    } else if (catchProgress < 60) {
-      elements.catchProgressFill.classList.add("medium");
-    }
-
-    // Condição de Vitória/Derrota
-    if (catchProgress >= 100) {
-      endMinigame(true);
-      return;
-    } else if (catchProgress <= 0) {
-      endMinigame(false);
-      return;
-    }
-
-    minigameLoop = requestAnimationFrame(gameLoop);
+    if (catchProgress >= 100) endMinigame(true);
+    else if (catchProgress <= 0) endMinigame(false);
+    else minigameLoop = requestAnimationFrame(gameLoop);
   }
 
   minigameLoop = requestAnimationFrame(gameLoop);
@@ -971,18 +994,16 @@ function endMinigame(success) {
   minigameActive = false;
   if (minigameLoop) cancelAnimationFrame(minigameLoop);
 
-  // Efeito visual de saída
   elements.minigameOverlay.classList.remove("active");
-
-  // Pequeno delay para a animação CSS acontecer antes de limpar dados
   setTimeout(() => {
-    elements.minigameOverlay.classList.remove("game-active"); // Se houver classe extra
+    elements.minigameOverlay.classList.remove("game-active");
   }, 300);
 
   if (success && currentFish) {
     gameState.inventory.push({ ...currentFish });
     gameState.totalFish++;
-    addXP(XP_PER_FISH[currentFish.rarity]);
+    // PASSANDO O ID PARA CORRIGIR O ERRO (Item 6)
+    addXP(XP_PER_FISH[currentFish.rarity], currentFish.id);
     showResultModal(true);
   } else {
     showResultModal(false);
@@ -995,7 +1016,6 @@ function endMinigame(success) {
   updateUI();
 }
 
-// Helper para gerar estrelas HTML
 function getDifficultyStars(count) {
   let stars = "";
   for (let i = 0; i < 5; i++) {
@@ -1008,12 +1028,14 @@ function showResultModal(success) {
   elements.resultModal.classList.add("active");
   if (success) {
     elements.resultStats.hidden = false;
-    elements.resultEmoji.textContent = currentFish.emoji;
+    elements.resultEmoji.innerHTML = `<img src="${currentFish.image}" class="w-32 h-32 mx-auto object-contain">`;
     elements.resultTitle.textContent = "Pesca Sucesso!";
     elements.resultTitle.style.color = "var(--success)";
     elements.resultDesc.textContent = `Você pescou um(a) ${currentFish.name}!`;
-    const xp =
-      XP_PER_FISH[currentFish.rarity] * (1 + gameState.bonuses.xp / 100);
+
+    const xpBase = XP_PER_FISH[currentFish.rarity];
+    const xpBonusMult = 1 + gameState.bonuses.xp / 100;
+    let xpGanho = Math.floor(xpBase * xpBonusMult * BALANCE.xpMultiplier);
     elements.resultStats.innerHTML = `
             <div class="result-stat-row"><span>Raridade:</span> <span class="result-stat-val ${
               currentFish.rarity
@@ -1022,7 +1044,7 @@ function showResultModal(success) {
               currentFish.price
             }</span></div>
             <div class="result-stat-row"><span>XP:</span> <span class="result-stat-val">+${Math.floor(
-              xp
+              xpGanho
             )}</span></div>
         `;
   } else {
@@ -1068,34 +1090,42 @@ document.addEventListener("pointerdown", (e) => {
 document.addEventListener("pointerup", handleHoldEnd);
 
 function sellAllFish() {
-  if (gameState.inventory.length === 0) {
-    showToast("Barco vazio!", "error");
-    return;
-  }
-  if (gameState.isSelling) return;
-  const baseTime = 30000;
-  const speedReduction = (gameState.boat.speed - 1) * 2000;
-  const sellTime = Math.max(5000, baseTime - speedReduction);
+  if (
+    gameState.inventory.length === 0 ||
+    gameState.isSelling ||
+    gameState.phase !== "idle"
+  )
+    return; // Trava
+
+  const sellTimeMs = Math.max(
+    3000,
+    BALANCE.baseSellTime * 1000 - (gameState.boat.speed - 1) * 1000
+  );
   gameState.isSelling = true;
+  gameState.phase = "selling"; // Define fase para impedir pesca
   updateUI();
-  let timeLeft = sellTime;
-  const timerInterval = setInterval(() => {
-    timeLeft -= 100;
-    const percentage = 100 - (timeLeft / sellTime) * 100;
-    elements.btnSell.querySelector(
-      ".sell-progress"
-    ).style.width = `${percentage}%`;
-    elements.sellTimerText.textContent = `Vendendo... ${(
-      timeLeft / 1000
-    ).toFixed(1)}s`;
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
+
+  // Use Optimized Animation
+  animateProgress(
+    sellTimeMs,
+    (percent) => {
+      // Reverse percent for sell bar
+      const timeLeft = sellTimeMs * (1 - percent / 100);
+      elements.btnSell.querySelector(".sell-progress").style.width = `${
+        100 - percent
+      }%`;
+      elements.sellTimerText.textContent = `Vendendo... ${(
+        timeLeft / 1000
+      ).toFixed(1)}s`;
+    },
+    () => {
       completeSell();
     }
-  }, 100);
+  );
 }
 
 function completeSell() {
+  gameState.phase = "idle";
   const sellBonus = 1 + gameState.bonuses.sell / 100;
   const total = gameState.inventory.reduce(
     (sum, fish) => sum + Math.floor(fish.price * sellBonus),
@@ -1148,14 +1178,16 @@ function buyUpgrade(type, category) {
 }
 
 function addBonus(type) {
-  if (gameState.bonusPoints <= 0) {
-    showToast("Sem pontos de bônus!", "error");
-    return;
-  }
-  const values = { time: 5, xp: 10, sell: 5, rare: 3 };
-  gameState.bonuses[type] += values[type];
+  if (gameState.bonusPoints <= 0) return;
+  const descriptions = {
+    time: "Motores turbinados e sonar de ponta! Reduz drasticamente esperas.",
+    xp: "Mestre da observação. Aprenda os segredos do mar muito mais rápido.",
+    sell: "Lábia de mercador. Convence os compradores a pagarem fortunas.",
+    rare: "Sorte de pescador lendário. Os peixes mais brilhantes amam suas iscas.",
+  };
+  gameState.bonuses[type] += BALANCE.bonusValues[type];
   gameState.bonusPoints--;
-  showToast("Bônus ativado!", "success");
+  showToast(descriptions[type], "success");
   updateUI();
 }
 
@@ -1234,13 +1266,11 @@ document.querySelectorAll(".mobile-nav-btn[data-target]").forEach((btn) => {
   btn.addEventListener("click", () => {
     const target = btn.dataset.target;
 
-    // 1. Atualiza botões
     document
       .querySelectorAll(".mobile-nav-btn")
       .forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
 
-    // 2. Troca as views
     document.querySelectorAll(".mobile-view").forEach((view) => {
       view.classList.remove("active");
     });
@@ -1248,15 +1278,11 @@ document.querySelectorAll(".mobile-nav-btn[data-target]").forEach((btn) => {
   });
 });
 
-// Botão de Mapa na Nav Mobile
 const btnMobileMap = document.getElementById("btn-mobile-map");
 if (btnMobileMap) {
   btnMobileMap.addEventListener("click", openMap);
 }
 
-// --- MOBILE NAVIGATION LOGIC ---
-
-// 1. Navegação entre abas (Pescar, Bolsa, Loja)
 document
   .querySelectorAll(
     ".mobile-nav-btn[data-target], .mobile-fish-btn[data-target]"
@@ -1265,18 +1291,15 @@ document
     btn.addEventListener("click", () => {
       const target = btn.dataset.target;
 
-      // Atualiza visual dos botões
       document
         .querySelectorAll(".mobile-nav-btn, .mobile-fish-btn")
         .forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
 
-      // Troca as views
       document.querySelectorAll(".mobile-view").forEach((view) => {
         view.classList.remove("active");
       });
 
-      // Se a view existir, ativa ela
       const targetView = document.getElementById(`mobile-view-${target}`);
       if (targetView) {
         targetView.classList.add("active");
@@ -1284,13 +1307,11 @@ document
     });
   });
 
-// 2. Botão de Mapa na Nav Mobile
 const btnMobileMapNav = document.getElementById("btn-mobile-map-nav");
 if (btnMobileMapNav) {
   btnMobileMapNav.addEventListener("click", openMap);
 }
 
-// 3. Botão de Menu na Nav Mobile (Novo)
 const btnMobileMenuNav = document.getElementById("btn-mobile-menu-nav");
 if (btnMobileMenuNav) {
   btnMobileMenuNav.addEventListener("click", () => {

@@ -592,26 +592,36 @@
                   <div class="bonus-grid">
                     <button class="bonus-btn" id="bonus-time">
                       <span class="bonus-icon">⚡</span>
-                      <p class="bonus-name">Ágil</p>
-                      <p class="bonus-desc">Viagem + rápida</p>
+                      <p class="bonus-name">Expedição Ágil</p>
+                      <p class="bonus-desc">
+                        Motores otimizados! Reduz tempo de viagem e busca em
+                        10%.
+                      </p>
                       <p class="bonus-current" id="time-bonus">+0%</p>
                     </button>
                     <button class="bonus-btn" id="bonus-xp">
                       <span class="bonus-icon">📚</span>
-                      <p class="bonus-name">Aprendiz</p>
-                      <p class="bonus-desc">Mais XP ganho</p>
+                      <p class="bonus-name">Mestre Observador</p>
+                      <p class="bonus-desc">
+                        Aprenda com cada fisgada. Aumenta XP ganho em 20%.
+                      </p>
                       <p class="bonus-current" id="xp-bonus">+0%</p>
                     </button>
                     <button class="bonus-btn" id="bonus-sell">
                       <span class="bonus-icon">💰</span>
-                      <p class="bonus-name">Negociante</p>
-                      <p class="bonus-desc">Venda + cara</p>
+                      <p class="bonus-name">Lábia Comercial</p>
+                      <p class="bonus-desc">
+                        Negocie melhores preços. Aumenta valor de venda em 15%.
+                      </p>
                       <p class="bonus-current" id="sell-bonus">+0%</p>
                     </button>
                     <button class="bonus-btn" id="bonus-rare">
                       <span class="bonus-icon">🦅</span>
-                      <p class="bonus-name">Sorte</p>
-                      <p class="bonus-desc">Chance de Raros</p>
+                      <p class="bonus-name">Sorte de Capitão</p>
+                      <p class="bonus-desc">
+                        Iscas irresistíveis. Aumenta chance de peixes raros em
+                        8%.
+                      </p>
                       <p class="bonus-current" id="rare-bonus">+0%</p>
                     </button>
                   </div>
@@ -903,6 +913,20 @@
         <p id="result-desc"></p>
         <div id="result-stats" class="result-stats"></div>
         <button class="btn btn-primary" id="btn-close-result">Continuar</button>
+      </div>
+    </div>
+
+    <div class="modal" id="message-modal">
+      <div class="modal-content">
+        <div id="msg-modal-icon" class="modal-icon">ℹ️</div>
+        <h2 id="msg-modal-title">Aviso</h2>
+        <p id="msg-modal-body" class="mb-6 text-gray-300"></p>
+        <button
+          class="btn btn-primary w-full"
+          onclick="document.getElementById('message-modal').classList.remove('active')"
+        >
+          OK
+        </button>
       </div>
     </div>
 

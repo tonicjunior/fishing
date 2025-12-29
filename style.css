@@ -1294,7 +1294,41 @@ kbd {
   }
 }
 
+.bonus-btn {
+  border-left: 4px solid var(--primary);
+  background: linear-gradient(90deg, var(--bg-surface) 0%, var(--bg-deep) 100%);
+}
+
 @media (max-width: 768px) {
+  body,
+  html {
+    height: 100%;
+    overflow: hidden; /* Trava o scroll global do navegador */
+  }
+
+  #game-screen {
+    height: 100vh;
+  }
+
+  #minigame-overlay {
+    position: fixed;
+    height: 100vh;
+    height: -webkit-fill-available; /* Suporte para barras de navegação mobile */
+    width: 100vw;
+    top: 0;
+    left: 0;
+    overflow: hidden; /* Garante que não haja rolagem durante a pesca */
+    touch-action: none; /* Impede gestos do sistema que causam scroll */
+  }
+
+  .heigh-auto {
+    height: 60vh; /* Ajusta a barra de pesca para caber na tela sem scroll */
+  }
+
+  .fishing-bar {
+    width: 50px; /* Mais fino para telas pequenas */
+  }
+
   .boat {
     top: 36%;
     width: 160px;
@@ -1875,4 +1909,70 @@ kbd {
 
 .upgrade-icon {
   margin-top: 4px; /* Pequeno ajuste visual se usar flex-start */
+}
+
+#mobile-view-shop::-webkit-scrollbar,
+#mobile-view-stats::-webkit-scrollbar {
+  width: 4px;
+}
+
+#mobile-view-shop::-webkit-scrollbar-thumb,
+#mobile-view-stats::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+/* Garante que o conteúdo da loja não fique esmagado */
+.upgrade-item {
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
+.map-lines-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5; /* Atrás dos nós, mas acima do fundo */
+}
+
+.map-route-line {
+  fill: none;
+  stroke: rgba(25, 161, 230, 0.4); /* Cor azul primária com transparência */
+  stroke-width: 3;
+  stroke-dasharray: 8, 8; /* Cria o efeito tracejado */
+  stroke-linecap: round;
+  animation: mapLineFlow 20s linear infinite;
+}
+
+@keyframes mapLineFlow {
+  from {
+    stroke-dashoffset: 200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.fish-item img,
+.result-emoji img {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Garante que o peixe na barra de minigame não tenha fontes residuais */
+#fish-marker-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#fish-marker {
+  /* Garante que o ponto de ancoragem seja o centro da imagem */
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
 }
