@@ -238,9 +238,9 @@ let gameState = {
 };
 
 const BALANCE = {
-  baseDifficulty: 0.6, // Global: menor = mais fácil (Item 1)
+  baseDifficulty: 0.8, // Global: menor = mais fácil (Item 1)
   baseSellTime: 15, // Tempo de venda reduzido para 15s (Item 2)
-  xpMultiplier: 3, // Progressão de XP mais rápida (Item 5)
+  xpMultiplier: 2.2, // Progressão de XP mais rápida (Item 5)
   firstCatchXP: 100, // Bônus para espécie nova (Item 6)
   bonusValues: {
     // Valores dos bônus por nível (Item 5 e 7)
@@ -710,15 +710,15 @@ function selectRandomFish() {
   return availableFish[Math.floor(Math.random() * availableFish.length)];
 }
 
-function addXP(amount, fishId = null) {
+function addXP(amount, fishId = null, difficulty = 1) {
   const xpBonus = 1 + gameState.bonuses.xp / 100;
   let xpGain = Math.floor(amount * xpBonus * BALANCE.xpMultiplier);
 
   // Bônus de Primeira Captura
   if (fishId && !gameState.caughtSpecies.includes(fishId)) {
     gameState.caughtSpecies.push(fishId);
-    xpGain += BALANCE.firstCatchXP;
-    showToast("✨ Nova Espécie Descoberta! +100 XP", "info");
+    xpGain += BALANCE.firstCatchXP * difficulty;
+    showToast("✨ Nova Espécie Descoberta! +" + xpGain + " XP", "info");
   }
 
   gameState.xp += xpGain;
@@ -893,6 +893,8 @@ function startMinigame() {
   gameState.phase = "fishing";
   currentFish = selectRandomFish(); // Seleciona o novo peixe
 
+  document.body.classList.add("minigame-focus");
+
   // Define os elementos visuais com as IMAGENS
   elements.minigameFishEmoji.innerHTML = `<img src="${currentFish.image}" class="w-20 h-20 object-contain mx-auto">`;
   elements.minigameFishName.textContent = currentFish.name;
@@ -992,6 +994,7 @@ function startMinigame() {
 
 function endMinigame(success) {
   minigameActive = false;
+  document.body.classList.remove("minigame-focus"); // Reativa o mundo
   if (minigameLoop) cancelAnimationFrame(minigameLoop);
 
   elements.minigameOverlay.classList.remove("active");
@@ -1003,7 +1006,11 @@ function endMinigame(success) {
     gameState.inventory.push({ ...currentFish });
     gameState.totalFish++;
     // PASSANDO O ID PARA CORRIGIR O ERRO (Item 6)
-    addXP(XP_PER_FISH[currentFish.rarity], currentFish.id);
+    addXP(
+      XP_PER_FISH[currentFish.rarity],
+      currentFish.id,
+      currentFish.difficulty
+    );
     showResultModal(true);
   } else {
     showResultModal(false);
@@ -1173,7 +1180,7 @@ function buyUpgrade(type, category) {
     if (type === "capacity") gameState.boat.capacity += 5;
     else gameState.boat[type]++;
   }
-  showToast("Melhoria adquirida!", "success");
+
   updateUI();
 }
 

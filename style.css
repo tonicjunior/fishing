@@ -370,20 +370,13 @@
   background: var(--bg-surface);
   opacity: 0.6;
 }
-.wave-1 {
-  top: 45%;
-  animation: wave 4s ease-in-out infinite;
-  border-radius: 50% 50% 0 0;
-}
 .wave-2 {
-  top: 48%;
-  animation: wave 4s ease-in-out infinite;
+  top: 49%;
   animation-delay: -1s;
   opacity: 0.7;
 }
 .wave-3 {
   top: 51%;
-  animation: wave 4s ease-in-out infinite;
   animation-delay: -2s;
   opacity: 0.8;
 }
@@ -431,6 +424,7 @@
   animation-delay: 3s;
 }
 .fish-swimming {
+  transform: scaleX(-1);
   position: absolute;
   font-size: 1.5rem;
   opacity: 0;
@@ -1006,6 +1000,7 @@ kbd {
   font-size: 1.5rem;
   display: block;
   margin-bottom: 0.25rem;
+  margin-right: 0.75rem;
 }
 .bonus-name {
   font-weight: 600;
@@ -1299,6 +1294,14 @@ kbd {
   background: linear-gradient(90deg, var(--bg-surface) 0%, var(--bg-deep) 100%);
 }
 
+@media (max-height: 800px) {
+  #shop-panel {
+    height: 85vh;
+    overflow-y: auto;
+    padding-bottom: 10%;
+  }
+}
+
 @media (max-width: 768px) {
   body,
   html {
@@ -1306,8 +1309,13 @@ kbd {
     overflow: hidden; /* Trava o scroll global do navegador */
   }
 
-  #game-screen {
-    height: 100vh;
+  #maps-screen {
+    display: none;
+  }
+
+  .bonus-btn {
+    display: flex;
+    align-items: center;
   }
 
   #minigame-overlay {
@@ -1976,3 +1984,22 @@ kbd {
   justify-content: center;
   width: 90px;
 }
+
+body.minigame-focus #game-container {
+  display: none !important; /* Destrói visualmente o peso do jogo principal */
+}
+
+/* Otimização de renderização para elementos que se movem muito */
+#catch-zone,
+#fish-marker,
+#catch-progress-fill {
+  will-change: transform; /* Avisa o navegador para preparar a GPU */
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+
+/* Remove transições de CSS durante o minigame para não conflitar com o JS */
+body.minigame-focus * {
+  transition: none !important;
+}
+
