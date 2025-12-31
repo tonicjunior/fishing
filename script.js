@@ -238,7 +238,7 @@ let gameState = {
 };
 
 const BALANCE = {
-  baseDifficulty: 0.8, // Global: menor = mais fácil (Item 1)
+  baseDifficulty: 0.68, // Global: menor = mais fácil (Item 1)
   baseSellTime: 15, // Tempo de venda reduzido para 15s (Item 2)
   xpMultiplier: 2.2, // Progressão de XP mais rápida (Item 5)
   firstCatchXP: 100, // Bônus para espécie nova (Item 6)
@@ -1329,3 +1329,4 @@ if (btnMobileMenuNav) {
 
 loadGame();
 updateMenuUI();
+
