@@ -8,7 +8,7 @@
       name="description"
       content="Jogo de pesca relaxante com progressão roguelike"
     />
-
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link
@@ -56,6 +56,77 @@
   <body
     class="font-display antialiased text-white select-none bg-background-dark overflow-x-hidden"
   >
+    <div
+      id="initial-flow"
+      class="fixed inset-0 z-[9999] flex items-center justify-center bg-background-dark"
+    >
+      <div id="step-loading" class="flex flex-col items-center">
+        <div
+          class="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"
+        ></div>
+        <p
+          class="text-primary font-black uppercase tracking-widest animate-pulse mb-1"
+        >
+          Carregando Maré...
+        </p>
+        <p
+          id="loading-status"
+          class="text-gray-500 text-[10px] font-bold uppercase tracking-widest"
+        >
+          Preparando iscas...
+        </p>
+      </div>
+
+      <div
+        id="step-config"
+        class="hidden flex flex-col items-center w-full max-w-md p-6"
+      >
+        <h2 class="text-2xl font-black text-primary uppercase mb-8">
+          Perfil do Pescador
+        </h2>
+
+        <div
+          class="w-full space-y-6 bg-surface-darker/50 p-8 rounded-3xl border border-white/5 shadow-2xl text-center"
+        >
+          <div class="flex flex-col gap-2 text-left">
+            <label class="text-[10px] font-black text-gray-500 uppercase ml-1"
+              >Nickname</label
+            >
+            <input
+              type="text"
+              id="setup-nickname"
+              placeholder="Seu nome no mar..."
+              class="bg-background-dark border border-white/10 rounded-2xl px-5 py-4 text-white focus:border-primary outline-none transition-all"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <button
+              id="setup-music"
+              class="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-primary text-primary bg-primary/5 transition-all"
+            >
+              <span class="material-symbols-outlined">music_note</span>
+              <span class="text-[10px] font-black uppercase">Música: ON</span>
+            </button>
+            <button
+              id="setup-sounds"
+              class="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-primary text-primary bg-primary/5 transition-all"
+            >
+              <span class="material-symbols-outlined">volume_up</span>
+              <span class="text-[10px] font-black uppercase">Sons: ON</span>
+            </button>
+          </div>
+
+          <button
+            id="btn-go-to-menu"
+            class="w-full py-5 bg-primary hover:bg-primary-dark text-white font-black uppercase rounded-2xl shadow-[0_6px_0_0_#127bb0] active:translate-y-1 active:shadow-none transition-all mt-4"
+          >
+            Entrar no Barco
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div
       id="menu-screen"
       class="screen relative flex h-screen w-full flex-col overflow-hidden bg-background-dark"
@@ -351,7 +422,7 @@
                 <div class="level-badge" id="player-level">1</div>
                 <div class="stats-info">
                   <span class="label">Nível</span>
-                  <span class="value">Pescador</span>
+                  <span class="value" id="player-name-display"></span>
                 </div>
                 <div class="money-display">
                   <span class="label">Dinheiro</span>
@@ -379,15 +450,55 @@
               </div>
             </div>
 
-            <div class="card boat-inventory">
-              <div class="card-header">
-                <h3>🚤 Barco</h3>
-                <span class="capacity-badge" id="boat-capacity">0/10</span>
+            <div class="card boat-inventory flex flex-col h-full">
+              <div class="flex border-b border-white/10 mb-4">
+                <button
+                  id="tab-btn-cargo"
+                  class="flex-1 py-2 text-xs font-black uppercase tracking-wider border-b-2 border-primary text-primary transition-all"
+                  onclick="switchInventoryTab('cargo')"
+                >
+                  Carga
+                </button>
+                <button
+                  id="tab-btn-album"
+                  class="flex-1 py-2 text-xs font-black uppercase tracking-wider border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition-all"
+                  onclick="switchInventoryTab('album')"
+                >
+                  Álbum
+                </button>
               </div>
-              <div class="capacity-bar">
-                <div class="capacity-fill" id="capacity-fill"></div>
+
+              <div id="inventory-cargo-view">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-[10px] text-gray-400 uppercase font-bold"
+                    >No Barco</span
+                  >
+                  <span class="capacity-badge" id="boat-capacity">0/10</span>
+                </div>
+                <div class="capacity-bar mb-4">
+                  <div class="capacity-fill" id="capacity-fill"></div>
+                </div>
+                <div class="fish-grid" id="fish-inventory"></div>
               </div>
-              <div class="fish-grid" id="fish-inventory"></div>
+
+              <div id="inventory-album-view" class="hidden">
+                <div
+                  class="flex justify-between items-center mb-3 bg-black/20 p-2 rounded-lg"
+                >
+                  <span class="text-[9px] uppercase font-bold text-gray-400"
+                    >Descobertos</span
+                  >
+                  <span
+                    id="album-progression-text"
+                    class="text-primary font-bold text-xs"
+                    >0/15</span
+                  >
+                </div>
+                <div
+                  id="album-list-container"
+                  class="grid grid-cols-3 gap-3 overflow-y-auto max-h-[350px] pr-1"
+                ></div>
+              </div>
             </div>
           </aside>
 
@@ -509,6 +620,9 @@
                 <button class="tab-btn active" data-tab="rod">🎣 Vara</button>
                 <button class="tab-btn" data-tab="boat">🚤 Barco</button>
                 <button class="tab-btn" data-tab="bonuses">⭐ Bônus</button>
+                <button class="tab-btn" data-tab="prestige">
+                  💠 Prestígio
+                </button>
               </div>
 
               <div class="upgrade-content" id="upgrade-content">
@@ -643,6 +757,33 @@
                     >
                   </p>
                 </div>
+
+                <div class="tab-content" id="tab-prestige">
+                  <div
+                    class="bg-surface-dark/50 p-4 rounded-2xl border border-primary/20 mb-4"
+                  >
+                    <h4 class="text-primary font-black uppercase text-xs mb-2">
+                      Status de Renascimento
+                    </h4>
+                    <p class="text-[10px] text-gray-400 mb-4">
+                      Ao renascer, você perde seu dinheiro e melhorias, mas
+                      ganha poderes permanentes.
+                    </p>
+
+                    <div
+                      class="space-y-2 mb-6"
+                      id="prestige-requirements"
+                    ></div>
+
+                    <button
+                      id="btn-prestige-action"
+                      class="btn btn-primary w-full disabled"
+                      disabled
+                    >
+                      Bloqueado
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </aside>
@@ -769,8 +910,88 @@
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
+
+        <div class="space-y-6">
+          <div class="bg-surface-dark p-5 rounded-2xl border border-white/5">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary"
+                  >music_note</span
+                >
+                <span class="font-bold">Música de Fundo</span>
+              </div>
+              <button
+                id="btn-mute-music"
+                class="text-xs uppercase font-black text-primary"
+              >
+                Ativo
+              </button>
+            </div>
+
+            <select
+              id="select-music"
+              class="w-full mb-4 bg-background-dark text-gray-300 border border-white/10 rounded-lg p-2 text-sm focus:ring-primary focus:border-primary"
+            >
+              <option value="random">🔀 Aleatório</option>
+              <option value="assets/sound/menu/menu1.mp3">
+                Trilha 1 - Calma
+              </option>
+              <option value="assets/sound/menu/menu2.mp3">
+                Trilha 2 - Brisa
+              </option>
+              <option value="assets/sound/menu/menu3.mp3">
+                Trilha 3 - Aventura
+              </option>
+              <option value="assets/sound/menu/menu4.mp3">
+                Trilha 4 - Profundeza
+              </option>
+              <option value="assets/sound/menu/menu5.mp3">
+                Trilha 5 - Porto
+              </option>
+              <option value="assets/sound/menu/menu6.mp3">
+                Trilha 6 - Mistério
+              </option>
+            </select>
+
+            <input
+              type="range"
+              id="volume-music"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0.5"
+              class="w-full h-1.5 bg-background-dark rounded-lg appearance-none cursor-pointer accent-primary"
+            />
+          </div>
+          <div class="bg-surface-dark p-5 rounded-2xl border border-white/5">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary"
+                  >volume_up</span
+                >
+                <span class="font-bold">Efeitos Sonoros</span>
+              </div>
+              <button
+                id="btn-mute-sounds"
+                class="text-xs uppercase font-black text-primary"
+              >
+                Ativo
+              </button>
+            </div>
+            <input
+              type="range"
+              id="volume-sounds"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0.7"
+              class="w-full h-1.5 bg-background-dark rounded-lg appearance-none cursor-pointer accent-primary"
+            />
+          </div>
+        </div>
+
         <div
-          class="bg-red-500/10 border border-red-500/20 rounded-2xl p-5 mt-auto"
+          class="bg-red-500/10 border border-red-500/20 rounded-2xl p-5 mt-10"
         >
           <h3 class="text-red-400 font-bold mb-2">Zona de Perigo</h3>
           <button
@@ -941,6 +1162,45 @@
       </div>
     </div>
 
+    <div class="modal" id="prestige-confirm-modal">
+      <div
+        class="modal-content border-primary shadow-[0_0_30px_rgba(25,161,230,0.4)]"
+      >
+        <div class="modal-icon text-primary">💠</div>
+        <h2 class="text-white">Renascimento Ritual</h2>
+        <p class="text-gray-400 text-sm mt-2">
+          Ao aceitar, seu ouro e melhorias serão perdidos. O mar esquecerá seus
+          feitos antigos, mas o presenteará com novos mistérios.
+        </p>
+
+        <div
+          class="bg-black/30 p-4 rounded-xl my-4 text-left border border-white/5"
+        >
+          <p class="text-[10px] font-bold text-primary uppercase mb-2">
+            Consequências:
+          </p>
+          <ul class="text-[10px] text-gray-300 space-y-1">
+            <li>• Dinheiro e Nível serão resetados</li>
+            <li>• Álbum de Peixes será limpo</li>
+            <li>• Vara e Barco voltarão ao nível 1</li>
+            <li class="text-green-400">• Bônus permanente desbloqueado</li>
+          </ul>
+        </div>
+
+        <div class="flex gap-2">
+          <button
+            class="btn btn-secondary flex-1"
+            onclick="document.getElementById('prestige-confirm-modal').classList.remove('active')"
+          >
+            Desistir
+          </button>
+          <button class="btn btn-primary flex-1" id="btn-prestige-confirm">
+            RENASCER
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="flash-overlay" class="flash-screen"></div>
     <script src="script.js"></script>
   </body>
 </html>
