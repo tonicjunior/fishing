@@ -165,7 +165,7 @@ const audioContext = {
     travel: new Audio("assets/sound/travel.mp3"),
   },
 };
-
+let activeEventAtStart = null;
 audioContext.sounds.battle.loop = true;
 
 function injectPrestigeContent() {
@@ -870,6 +870,12 @@ function openMap() {
 function renderMapNodes() {
   elements.map.container.innerHTML = "";
   AREAS.forEach((area) => {
+    // --- MELHORIA C: LÓGICA DE BLOQUEIO POR PRESTÍGIO ---
+    let isLocked = false;
+    if (area.id === "mystic_void" && gameState.prestigeLevel < 2) {
+      isLocked = true;
+    }
+
     const node = document.createElement("div");
     const activeEvent = getActiveEventForArea(area.id);
     const isPos = gameState.activeEvents.positive?.areaId === area.id;
@@ -877,35 +883,53 @@ function renderMapNodes() {
 
     node.className = `map-node pointer-events-auto ${
       gameState.currentArea.id === area.id ? "active" : ""
-    }`;
+    } ${isLocked ? "locked opacity-60" : ""}`;
+
     node.style.top = `${area.coordinates.top}%`;
     node.style.left = `${area.coordinates.left}%`;
     node.dataset.id = area.id;
 
     let eventMarker = "";
-    if (isPos)
-      eventMarker = `<div class="absolute -top-6 text-xl animate-bounce">🌟</div>`;
-    if (isNeg)
-      eventMarker = `<div class="absolute -top-6 text-xl animate-pulse">⚠️</div>`;
+    if (!isLocked) {
+      if (isPos)
+        eventMarker = `<div class="absolute -top-6 text-xl animate-bounce">🌟</div>`;
+      if (isNeg)
+        eventMarker = `<div class="absolute -top-6 text-xl animate-pulse">⚠️</div>`;
+    }
 
     let marker =
       gameState.currentArea.id === area.id
         ? `<div class="current-location-marker"><span class="material-symbols-outlined text-[10px] text-white">sailing</span></div>`
         : "";
 
-    node.innerHTML = `
-      ${eventMarker}
-      <div class="node-icon" style="border-color: ${
-        isPos ? "#19a1e6" : isNeg ? "#ef4444" : "rgba(255,255,255,0.1)"
-      }">
-        <span class="material-symbols-outlined text-white text-2xl">${
-          area.icon
-        }</span>
-        ${marker}
-      </div>
-      <div class="node-label">${area.name}</div>`;
+    // Conteúdo condicional se estiver bloqueado
+    if (isLocked) {
+      node.innerHTML = `
+        <div class="node-icon border-gray-600 bg-gray-800/80">
+          <span class="material-symbols-outlined text-gray-500 text-2xl">lock</span>
+        </div>
+        <div class="node-label text-gray-500">Prestígio Nvl 2</div>`;
 
-    node.addEventListener("click", () => selectMapArea(area));
+      node.addEventListener("click", () => {
+        playSound("click");
+        showToast("Área bloqueada! Alcance o Prestígio Nível 2.", "error");
+      });
+    } else {
+      node.innerHTML = `
+        ${eventMarker}
+        <div class="node-icon" style="border-color: ${
+          isPos ? "#19a1e6" : isNeg ? "#ef4444" : "rgba(255,255,255,0.1)"
+        }">
+          <span class="material-symbols-outlined text-white text-2xl">${
+            area.icon
+          }</span>
+          ${marker}
+        </div>
+        <div class="node-label">${area.name}</div>`;
+
+      node.addEventListener("click", () => selectMapArea(area));
+    }
+
     elements.map.container.appendChild(node);
   });
 }
@@ -1141,6 +1165,20 @@ function startSearching() {
 function startCountdown() {
   stopMenuMusic();
   currentFish = selectRandomFish();
+
+  // --- MELHORIA A: SNAPSHOT DO EVENTO ---
+  activeEventAtStart = getActiveEventForArea(gameState.currentArea.id);
+
+  // --- MELHORIA B: FEEDBACK VISUAL DE MARÉ ---
+  elements.minigameOverlay.classList.remove("mare-positiva", "mare-negativa");
+  if (activeEventAtStart) {
+    const isPos =
+      gameState.activeEvents.positive?.event.id === activeEventAtStart.id;
+    elements.minigameOverlay.classList.add(
+      isPos ? "mare-positiva" : "mare-negativa"
+    );
+  }
+
   document.getElementById("minigame-area-name").textContent =
     gameState.currentArea.name;
   document.getElementById("minigame-area-difficulty").innerHTML =
@@ -1216,15 +1254,13 @@ function startMinigame() {
   minigameActive = true;
   minigameStartTime = performance.now();
 
-  const activeEvent = getActiveEventForArea(gameState.currentArea.id);
-
-  // Efeito Evento: Estabilidade
-  const stabilityMod = activeEvent?.effect?.stability || 1;
+  // --- MELHORIA A: USANDO SNAPSHOT (activeEventAtStart) EM VEZ DO GLOBAL ---
+  const stabilityMod = activeEventAtStart?.effect?.stability || 1;
   const prestigeStability = gameState.prestigeLevel >= 1 ? 1.5 : 0;
   const finalHeightPct = Math.min(
     40,
     (20 + (gameState.rod.stability - 1 + prestigeStability) * 1.5) *
-      (activeEvent?.effect?.zoneSize || 1)
+      (activeEventAtStart?.effect?.zoneSize || 1)
   );
   elements.catchZone.style.height = `${finalHeightPct}%`;
 
@@ -1241,8 +1277,8 @@ function startMinigame() {
     else if (fishDiffBase >= 6 && fishDiffBase <= 7) balanceMultiplier = 0.85;
     else if (fishDiffBase >= 8 && fishDiffBase <= 10) balanceMultiplier = 0.75;
 
-    // Efeito Evento: Peixe Nervoso
-    const fishSpeedMod = activeEvent?.effect?.fishSpeed || 1;
+    // Snapshot do Peixe Nervoso
+    const fishSpeedMod = activeEventAtStart?.effect?.fishSpeed || 1;
     const difficulty = Math.max(
       1,
       fishDiffBase * balanceMultiplier * BALANCE.baseDifficulty -
@@ -1280,12 +1316,12 @@ function startMinigame() {
       fishPosition <= ((zoneYPx + zoneHeight) / barHeight) * 100;
     elements.catchZone.classList.toggle("catching", inZone);
 
-    // Efeito Evento: Progresso e Penalidade
-    const progressSpeed = activeEvent?.effect?.progressSpeed || 1;
-    let failPenalty = activeEvent?.effect?.failPenalty || 1;
+    // Snapshot do Progresso e Penalidade
+    const progressSpeed = activeEventAtStart?.effect?.progressSpeed || 1;
+    let failPenalty = activeEventAtStart?.effect?.failPenalty || 1;
 
-    // Efeito Especial: Chamado do Abismo
-    if (activeEvent?.id === "abyss_call" && catchProgress < 25) {
+    // Snapshot Chamado do Abismo
+    if (activeEventAtStart?.id === "abyss_call" && catchProgress < 25) {
       failPenalty *= 1.5;
     }
 
@@ -1304,7 +1340,6 @@ function startMinigame() {
   }
   minigameLoop = requestAnimationFrame(gameLoop);
 }
-
 function endMinigame(success) {
   minigameActive = false;
   audioContext.sounds.battle.pause();

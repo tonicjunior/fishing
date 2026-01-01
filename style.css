@@ -2156,3 +2156,31 @@ body {
   align-items: center;
   flex-direction: column;
 }
+
+/* Feedback visual de Maré no Minigame */
+.minigame-overlay.mare-positiva {
+  box-shadow: inset 0 0 150px rgba(25, 161, 230, 0.4);
+}
+
+.minigame-overlay.mare-negativa {
+  box-shadow: inset 0 0 150px rgba(239, 68, 68, 0.4);
+}
+
+/* Animação para o cadeado do mapa */
+.map-node.locked:hover .node-icon {
+  animation: shake 0.4s ease-in-out;
+  border-color: #ef4444 !important;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
