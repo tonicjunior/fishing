@@ -1672,10 +1672,17 @@ function updateAudioButtons() {
   btnMusicSetup.querySelector("span:last-child").textContent = `Música: ${
     audioContext.musicMuted ? "OFF" : "ON"
   }`;
+
   btnSoundsSetup.classList.toggle("opacity-50", audioContext.soundsMuted);
   btnSoundsSetup.querySelector("span:last-child").textContent = `Sons: ${
     audioContext.soundsMuted ? "OFF" : "ON"
   }`;
+
+  // Sincroniza com o menu de configurações interno
+  document.getElementById("btn-mute-music").textContent =
+    audioContext.musicMuted ? "Mutado" : "Ativo";
+  document.getElementById("btn-mute-sounds").textContent =
+    audioContext.soundsMuted ? "Mutado" : "Ativo";
 }
 
 document.getElementById("btn-go-to-menu").addEventListener("click", () => {
