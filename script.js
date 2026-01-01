@@ -448,7 +448,7 @@ const BALANCE = {
   xpMultiplier: 2.2,
   firstCatchXP: 100,
   bonusValues: { time: 10, xp: 20, sell: 15, rare: 8 },
-  eventInterval: 5 * 60 * 1000, // 5 minutos
+  eventInterval: 2.5 * 60 * 1000, // 2.5 minutos
 };
 
 // --- FUNÇÕES DE EVENTOS (MARÉS) ---
