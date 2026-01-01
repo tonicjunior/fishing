@@ -620,11 +620,32 @@
               </div>
 
               <div class="upgrade-tabs">
-                <button class="tab-btn active" data-tab="rod">🎣 Vara</button>
-                <button class="tab-btn" data-tab="boat">🚤 Barco</button>
-                <button class="tab-btn" data-tab="bonuses">⭐ Bônus</button>
+                <button class="tab-btn active" data-tab="rod">
+                  <div class="tab-content-icon">
+                    <span class="tab-icon">🎣</span>
+                    <span class="tab-text">Vara</span>
+                  </div>
+                </button>
+
+                <button class="tab-btn" data-tab="boat">
+                  <div class="tab-content-icon">
+                    <span class="tab-icon">🚤</span>
+                    <span class="tab-text">Barco</span>
+                  </div>
+                </button>
+
+                <button class="tab-btn" data-tab="bonuses">
+                  <div class="tab-content-icon">
+                    <span class="tab-icon">⭐</span>
+                    <span class="tab-text">Bônus</span>
+                  </div>
+                </button>
+
                 <button class="tab-btn" data-tab="prestige">
-                  💠 Prestígio
+                  <div class="tab-content-icon">
+                    <span class="tab-icon">💠</span>
+                    <span class="tab-text">Prestígio</span>
+                  </div>
                 </button>
               </div>
 
@@ -1090,7 +1111,7 @@
           </div>
 
           <div
-            class="relative flex gap-4 md:gap-6 items-center heigh-auto h-[68vh]"
+            class="relative flex gap-4 md:gap-6 items-center heigh-auto h-[64vh]"
           >
             <div
               class="h-full w-4 md:w-6 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 relative overflow-hidden shadow-2xl"
@@ -1270,6 +1291,34 @@
               0
             </p>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="reset-confirm-modal">
+      <div class="modal-content border-primary/30 bg-surface-darker">
+        <h2 class="text-primary uppercase tracking-tighter italic">
+          Limpar Registros?
+        </h2>
+        <p
+          class="text-gray-400 text-[11px] font-bold uppercase tracking-widest mt-4"
+        >
+          Seu progresso atual será removido permanentemente do diário de bordo.
+        </p>
+
+        <div class="flex flex-col gap-3 mt-8">
+          <button
+            id="btn-reset-final"
+            class="w-full py-4 bg-primary/10 border border-primary/50 text-primary font-black uppercase text-xs rounded-xl hover:bg-primary hover:text-white transition-all shadow-lg"
+          >
+            Confirmar Exclusão
+          </button>
+          <button
+            class="w-full py-3 text-gray-500 font-bold uppercase text-[10px] hover:text-white transition-colors"
+            onclick="document.getElementById('reset-confirm-modal').classList.remove('active')"
+          >
+            Voltar para o Mar
+          </button>
         </div>
       </div>
     </div>

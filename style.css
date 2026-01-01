@@ -2134,7 +2134,7 @@ body.minigame-focus * {
 }
 
 #minigame-area-name {
-  font-size: 1.7rem;
+  font-size: 1.1rem;
   font-weight: 700;
   margin-top: 10px;
 }
@@ -2149,4 +2149,10 @@ body {
 #fishing-bar,
 #catch-zone {
   touch-action: none;
+}
+
+.tab-content-icon {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
