@@ -4,6 +4,7 @@ const RARITY_LABELS = {
   rare: "Raro",
   legendary: "Lendário",
 };
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
 // --- NOVAS CONFIGURAÇÕES DE EVENTOS (MARÉS) ---
 const EVENT_TYPES = {
@@ -187,12 +188,16 @@ function injectPrestigeContent() {
 
 function playSound(soundKey) {
   if (audioContext.soundsMuted) return;
-  const sound = audioContext.sounds[soundKey];
-  if (sound) {
-    sound.volume = audioContext.soundsVolume;
-    sound.currentTime = 0;
-    sound.play().catch(() => {});
+
+  if (isIOS && (soundKey === "fishing" || soundKey === "battle")) {
+    return;
   }
+  const sound = audioContext.sounds[soundKey];
+  if (!sound) return;
+
+  sound.volume = audioContext.soundsVolume;
+  sound.currentTime = 0;
+  sound.play().catch(() => {});
 }
 
 const FISH_DATA = [
@@ -2034,6 +2039,37 @@ function updateFishingSound() {
     fishingSoundPlaying = false;
   }
 }
+
+document.addEventListener(
+  "touchstart",
+  (e) => {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  },
+  { passive: false }
+);
+
+let lastTouchEnd = 0;
+document.addEventListener(
+  "touchend",
+  (e) => {
+    const now = new Date().getTime();
+    if (now - lastTouchEnd <= 300) {
+      e.preventDefault(); // Bloqueia double-tap zoom
+    }
+    lastTouchEnd = now;
+  },
+  false
+);
+
+document.addEventListener(
+  "contextmenu",
+  (e) => {
+    e.preventDefault();
+  },
+  false
+);
 
 // Inicialização
 loadGame();
