@@ -102,6 +102,8 @@ const audioContext = {
   },
 };
 
+audioContext.sounds.battle.loop = true;
+
 function injectPrestigeContent() {
   // Se prestígio >= 1, adiciona o lendário extra se ele ainda não estiver no array global
   if (gameState.prestigeLevel >= 1) {
@@ -516,6 +518,7 @@ const elements = {
 };
 
 let selectedMapArea = null;
+let fishDecisionTimer = 0;
 
 function showScreen(screenName) {
   Object.values(elements.screens).forEach((screen) =>
@@ -963,29 +966,44 @@ function startSearching() {
 
 function startCountdown() {
   stopMenuMusic();
+  audioContext.sounds.battle.load();
   playSound("battle");
-  elements.minigameFishEmoji.innerHTML = "";
-  elements.minigameFishName.textContent = "Calculando...";
-  elements.minigameDifficulty.innerHTML = "";
+
+  // --- RESET VISUAL DA INTERFACE ---
+  elements.minigameFishEmoji.innerHTML = `<div class="w-20 h-20 bg-white/5 animate-pulse rounded-full flex items-center justify-center text-4xl">?</div>`;
+  elements.minigameFishName.textContent = "Identificando...";
+  elements.minigameDifficulty.innerHTML = "?????";
+
+  // Reseta as barras visuais para o estado zero
+  elements.catchProgressFill.style.height = "0%";
+  elements.catchZone.style.transform = "translateY(120%)";
+  elements.fishMarker.style.transform = "translate(-50%, 0px) translateY(-50%)";
+
+  // Esconde o ícone do peixe no marcador até o jogo começar
+  if (fishMarkerInner) fishMarkerInner.innerHTML = "";
+  // ----------------------------------
+
   elements.minigameOverlay.classList.add("active");
   elements.countdown.classList.add("active");
+
   let count = 3;
   elements.countdown.textContent = count;
+
   const countInterval = setInterval(() => {
     count--;
-    if (count > 0) elements.countdown.textContent = count;
-    else {
+    if (count > 0) {
+      elements.countdown.textContent = count;
+    } else {
       clearInterval(countInterval);
-      elements.countdown.textContent = "GO!";
+      elements.countdown.textContent = "FISGOU!";
       setTimeout(() => {
         elements.countdown.classList.remove("active");
         elements.minigameOverlay.classList.add("game-active");
-        startMinigame();
+        startMinigame(); // Aqui os dados reais do peixe são carregados
       }, 500);
     }
   }, 500);
 }
-
 let currentFish = null,
   minigameActive = false,
   isHolding = false,
@@ -997,28 +1015,36 @@ let currentFish = null,
   minigameLoop = null,
   minigameStartTime = 0;
 
+const fishMarkerInner = document.getElementById("fish-marker-inner");
+
 function startMinigame() {
   gameState.phase = "fishing";
   currentFish = selectRandomFish();
   document.body.classList.add("minigame-focus");
+
+  // Interface
   elements.minigameFishEmoji.innerHTML = `<img src="${currentFish.image}" class="w-20 h-20 object-contain mx-auto">`;
   elements.minigameFishName.textContent = currentFish.name;
   elements.minigameDifficulty.innerHTML = getDifficultyStars(
     currentFish.difficulty
   );
-  const fishInner = document.getElementById("fish-marker-inner");
-  if (fishInner)
-    fishInner.innerHTML = `<img src="${currentFish.image}" class="w-16 h-16 object-contain">`;
 
+  if (fishMarkerInner) {
+    fishMarkerInner.innerHTML = `<img src="${currentFish.image}" class="w-16 h-16 object-contain">`;
+  }
+
+  // Reset de variáveis
   zonePosition = 50;
   fishPosition = 50;
   fishVelocity = 0;
   fishDirection = 1;
   catchProgress = 30;
   isHolding = false;
+  fishDecisionTimer = 0;
   minigameActive = true;
   minigameStartTime = performance.now();
-  const prestigeStability = gameState.prestigeLevel >= 1 ? 1.5 : 0; // Ex: +1.5 níveis de estabilidade
+
+  const prestigeStability = gameState.prestigeLevel >= 1 ? 1.5 : 0;
   const finalHeightPct = Math.min(
     40,
     20 + (gameState.rod.stability - 1 + prestigeStability) * 1.5
@@ -1026,52 +1052,80 @@ function startMinigame() {
   elements.catchZone.style.height = `${finalHeightPct}%`;
 
   let lastTime = performance.now();
+
   function gameLoop(currentTime) {
     if (!minigameActive) return;
+
     const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
     lastTime = currentTime;
+
     const difficulty = Math.max(
       1,
       currentFish.difficulty * BALANCE.baseDifficulty -
         gameState.rod.stability / 4
     );
+
+    // Lógica do Peixe
     if (currentTime - minigameStartTime > 1000) {
-      if (Math.random() < 0.02 + difficulty * 0.005) {
-        fishDirection = Math.random() > 0.5 ? 1 : -1;
-        fishVelocity = (Math.random() * 100 + 50) * (difficulty / 3);
+      fishDecisionTimer += deltaTime;
+      if (fishDecisionTimer > 0.3) {
+        fishDecisionTimer = 0;
+        if (Math.random() < 0.15 + difficulty * 0.05) {
+          fishDirection = Math.random() > 0.5 ? 1 : -1;
+          fishVelocity = (Math.random() * 100 + 50) * (difficulty / 3);
+        }
       }
+
       fishPosition += fishVelocity * fishDirection * deltaTime;
-      if (fishPosition <= 0 || fishPosition >= 100) {
-        fishDirection *= -1;
-        fishPosition = Math.max(0, Math.min(100, fishPosition));
-      }
+      fishPosition = Math.max(0, Math.min(100, fishPosition));
     }
+
+    // Movimento da Barra do Jogador
     zonePosition += (isHolding ? -185 : 75) * deltaTime;
     zonePosition = Math.max(0, Math.min(100, zonePosition));
-    const maxTop = 100 - finalHeightPct;
-    elements.catchZone.style.top = `${(zonePosition / 100) * maxTop}%`;
-    elements.fishMarker.style.top = `${Math.max(
-      5,
-      Math.min(95, fishPosition)
-    )}%`;
-    const inner = document.getElementById("fish-marker-inner");
-    if (inner) inner.style.transform = `scaleX(${fishDirection > 0 ? 1 : -1})`;
-    const vTop = (zonePosition / 100) * maxTop;
-    const inZone =
-      fishPosition >= vTop && fishPosition <= vTop + finalHeightPct;
+
+    // --- CÁLCULO CORRIGIDO EM PIXELS ---
+    const barHeight = elements.fishingBar.clientHeight;
+    const zoneHeight = elements.catchZone.clientHeight;
+
+    // Calcula o topo máximo que a zona pode ir (em pixels)
+    const maxZoneTopPx = barHeight - zoneHeight;
+    const zoneYPx = (zonePosition / 100) * maxZoneTopPx;
+
+    // Calcula a posição do peixe (em pixels)
+    const fishYPx = (fishPosition / 100) * barHeight;
+
+    // Aplica as transformações usando PX
+    elements.catchZone.style.transform = `translateY(${zoneYPx}px)`;
+    elements.fishMarker.style.transform = `translate(-50%, ${fishYPx}px) translateY(-50%)`;
+
+    if (fishMarkerInner) {
+      fishMarkerInner.style.transform =
+        fishDirection > 0 ? "scaleX(1)" : "scaleX(-1)";
+    }
+
+    // Lógica de Captura (Baseada na posição 0-100 para consistência)
+    // Convertemos zoneYPx de volta para porcentagem relativa ao barHeight para comparar com fishPosition
+    const zoneTopPct = (zoneYPx / barHeight) * 100;
+    const zoneBottomPct = ((zoneYPx + zoneHeight) / barHeight) * 100;
+
+    const inZone = fishPosition >= zoneTopPct && fishPosition <= zoneBottomPct;
+
     elements.catchZone.classList.toggle("catching", inZone);
+
     catchProgress = Math.max(
       0,
       Math.min(100, catchProgress + (inZone ? 0.4 : -0.25))
     );
     elements.catchProgressFill.style.height = `${catchProgress}%`;
+
     if (catchProgress >= 100) endMinigame(true);
     else if (catchProgress <= 0) endMinigame(false);
     else minigameLoop = requestAnimationFrame(gameLoop);
   }
+
   minigameLoop = requestAnimationFrame(gameLoop);
 }
-
 // GATILHO DE SALVAMENTO: FIM DE PESCA
 function endMinigame(success) {
   minigameActive = false;
@@ -1804,6 +1858,10 @@ document
     // Inicia o processo de renascimento com animação
     performPrestige();
   });
+
+document.addEventListener("visibilitychange", () => {
+  document.body.classList.toggle("paused", document.hidden);
+});
 
 loadGame();
 updateMenuUI();
