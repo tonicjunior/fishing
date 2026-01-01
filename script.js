@@ -532,6 +532,7 @@ const elements = {
 
 let selectedMapArea = null;
 let fishDecisionTimer = 0;
+let fishingSoundPlaying = false;
 
 function showScreen(screenName) {
   Object.values(elements.screens).forEach((screen) =>
@@ -982,33 +983,42 @@ function startSearching() {
 function startCountdown() {
   stopMenuMusic();
 
+  currentFish = selectRandomFish();
+  const area = gameState.currentArea;
+
+  document.getElementById("minigame-area-name").textContent = area.name;
+  document.getElementById("minigame-area-difficulty").innerHTML =
+    getDifficultyStars(area.difficulty);
+  elements.minigameFishEmoji.innerHTML = `<img src="${currentFish.image}" class="w-16 h-16 object-contain">`;
+  elements.minigameFishName.textContent = currentFish.name;
+  elements.minigameDifficulty.innerHTML = getDifficultyStars(
+    currentFish.difficulty
+  );
+
+  if (fishMarkerInner) {
+    fishMarkerInner.innerHTML = `<img src="${currentFish.image}" class="w-12 h-12 object-contain">`;
+  }
+
+  // Forçar posicionamento central antes do início
+  const barHeight = elements.fishingBar.clientHeight;
+  const initialY = barHeight / 2;
+
+  elements.catchProgressFill.style.height = "30%";
+  elements.catchZone.style.transform = `translateY(${
+    initialY - elements.catchZone.clientHeight / 2
+  }px)`;
+  elements.fishMarker.style.transform = `translate(-50%, ${initialY}px) translateY(190%)`;
+
   if (!audioContext.musicMuted) {
     audioContext.sounds.battle.volume = audioContext.musicVolume;
     audioContext.sounds.battle.play().catch(() => {});
   }
 
-  // Melhoria 2: Preparar o som de fishing em silêncio (Contínuo)
   if (!audioContext.soundsMuted) {
     audioContext.sounds.fishing.loop = true;
     audioContext.sounds.fishing.volume = 0;
-    audioContext.sounds.fishing
-      .play()
-      .catch((e) => console.log("Erro áudio:", e));
+    audioContext.sounds.fishing.play().catch(() => {});
   }
-
-  // --- RESET VISUAL DA INTERFACE ---
-  elements.minigameFishEmoji.innerHTML = `<div class="w-20 h-20 bg-white/5 animate-pulse rounded-full flex items-center justify-center text-4xl">?</div>`;
-  elements.minigameFishName.textContent = "Identificando...";
-  elements.minigameDifficulty.innerHTML = "?????";
-
-  // Reseta as barras visuais para o estado zero
-  elements.catchProgressFill.style.height = "0%";
-  elements.catchZone.style.transform = "translateY(120%)";
-  elements.fishMarker.style.transform = "translate(-50%, 0px) translateY(-50%)";
-
-  // Esconde o ícone do peixe no marcador até o jogo começar
-  if (fishMarkerInner) fishMarkerInner.innerHTML = "";
-  // ----------------------------------
 
   elements.minigameOverlay.classList.add("active");
   elements.countdown.classList.add("active");
@@ -1026,7 +1036,7 @@ function startCountdown() {
       setTimeout(() => {
         elements.countdown.classList.remove("active");
         elements.minigameOverlay.classList.add("game-active");
-        startMinigame(); // Aqui os dados reais do peixe são carregados
+        startMinigame();
       }, 500);
     }
   }, 500);
@@ -1046,25 +1056,14 @@ const fishMarkerInner = document.getElementById("fish-marker-inner");
 
 function startMinigame() {
   gameState.phase = "fishing";
-  currentFish = selectRandomFish();
   document.body.classList.add("minigame-focus");
 
-  // Interface
-  elements.minigameFishEmoji.innerHTML = `<img src="${currentFish.image}" class="w-20 h-20 object-contain mx-auto">`;
-  elements.minigameFishName.textContent = currentFish.name;
-  elements.minigameDifficulty.innerHTML = getDifficultyStars(
-    currentFish.difficulty
-  );
-
-  if (fishMarkerInner) {
-    fishMarkerInner.innerHTML = `<img src="${currentFish.image}" class="w-16 h-16 object-contain">`;
-  }
-
-  // Reset de variáveis
+  // Reset de variáveis de física
   zonePosition = 50;
   fishPosition = 50;
   fishVelocity = 0;
-  fishDirection = 1;
+  // Faz o peixe já começar decidindo um lado aleatório com velocidade
+  fishDirection = Math.random() > 0.5 ? 1 : -1;
   catchProgress = 30;
   isHolding = false;
   fishDecisionTimer = 0;
@@ -1086,46 +1085,44 @@ function startMinigame() {
     const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
     lastTime = currentTime;
 
-    // --- MELHORIA 2: CONTROLE DE VOLUME DO SOM DE PESCA ---
-    if (!audioContext.soundsMuted) {
-      // Se estiver segurando, volume = sonsVolume, se soltar, volume = 0
-      audioContext.sounds.fishing.volume = isHolding
-        ? audioContext.soundsVolume
-        : 0;
-    }
+    updateFishingSound();
+
+    // --- CÁLCULO DE DIFICULDADE (Conforme seu balanceamento anterior) ---
+    let fishDiffBase = currentFish.difficulty;
+    let balanceMultiplier = 1;
+    if (fishDiffBase >= 1 && fishDiffBase <= 5) balanceMultiplier = 1.15;
+    else if (fishDiffBase >= 6 && fishDiffBase <= 7) balanceMultiplier = 0.85;
+    else if (fishDiffBase >= 8 && fishDiffBase <= 10) balanceMultiplier = 0.75;
 
     const difficulty = Math.max(
       1,
-      currentFish.difficulty * BALANCE.baseDifficulty -
+      fishDiffBase * balanceMultiplier * BALANCE.baseDifficulty -
         gameState.rod.stability / 4
     );
 
-    // Lógica do Peixe
-    if (currentTime - minigameStartTime > 1000) {
-      fishDecisionTimer += deltaTime;
-      if (fishDecisionTimer > 0.3) {
-        fishDecisionTimer = 0;
-        if (Math.random() < 0.15 + difficulty * 0.05) {
-          fishDirection = Math.random() > 0.5 ? 1 : -1;
-          fishVelocity = (Math.random() * 100 + 50) * (difficulty / 3);
-        }
+    // --- LÓGICA DE MOVIMENTAÇÃO (SEM DELAY INICIAL) ---
+    fishDecisionTimer += deltaTime;
+
+    // O peixe agora decide o que fazer muito mais rápido (0.15s)
+    if (fishDecisionTimer > 0.15) {
+      fishDecisionTimer = 0;
+      // Aumentada a chance de mudança súbita para evitar peixes "estáticos"
+      if (Math.random() < 0.25 + difficulty * 0.05) {
+        fishDirection = Math.random() > 0.5 ? 1 : -1;
+        // Velocidade base aumentada para garantir movimento imediato
+        fishVelocity = (Math.random() * 120 + 60) * (difficulty / 3);
       }
-
-      fishPosition += fishVelocity * fishDirection * deltaTime;
-
-      // --- MELHORIA 3: LIMITES (PADDING) PARA O PEIXE ---
-      const fishPadding = 5; // O peixe nunca passará de 5% ou 95% da barra
-      fishPosition = Math.max(
-        fishPadding,
-        Math.min(100 - fishPadding, fishPosition)
-      );
     }
 
-    // Movimento da Barra do Jogador
+    // Aplica o movimento
+    fishPosition += fishVelocity * fishDirection * deltaTime;
+    fishPosition = Math.max(5, Math.min(95, fishPosition));
+
+    // Movimentação da barra do jogador
     zonePosition += (isHolding ? -185 : 75) * deltaTime;
     zonePosition = Math.max(0, Math.min(100, zonePosition));
 
-    // Cálculos de renderização (mantendo sua lógica de pixels)
+    // Atualização Visual (CSS Transforms)
     const barHeight = elements.fishingBar.clientHeight;
     const zoneHeight = elements.catchZone.clientHeight;
     const maxZoneTopPx = barHeight - zoneHeight;
@@ -1140,6 +1137,7 @@ function startMinigame() {
         fishDirection > 0 ? "scaleX(1)" : "scaleX(-1)";
     }
 
+    // Lógica de Captura
     const zoneTopPct = (zoneYPx / barHeight) * 100;
     const zoneBottomPct = ((zoneYPx + zoneHeight) / barHeight) * 100;
     const inZone = fishPosition >= zoneTopPct && fishPosition <= zoneBottomPct;
@@ -1147,15 +1145,14 @@ function startMinigame() {
     elements.catchZone.classList.toggle("catching", inZone);
     catchProgress = Math.max(
       0,
-      Math.min(100, catchProgress + (inZone ? 0.4 : -0.25))
-    );
+      Math.min(100, catchProgress + (inZone ? 0.45 : -0.3))
+    ); // Ligeiro ajuste na punição/ganho
     elements.catchProgressFill.style.height = `${catchProgress}%`;
 
     if (catchProgress >= 100) endMinigame(true);
     else if (catchProgress <= 0) endMinigame(false);
     else minigameLoop = requestAnimationFrame(gameLoop);
   }
-
   minigameLoop = requestAnimationFrame(gameLoop);
 }
 
@@ -1168,9 +1165,9 @@ function endMinigame(success) {
   audioContext.sounds.battle.pause();
   audioContext.sounds.battle.currentTime = 0;
 
+  fishingSoundPlaying = false;
   audioContext.sounds.fishing.pause();
   audioContext.sounds.fishing.currentTime = 0;
-  audioContext.sounds.fishing.volume = 0;
 
   document.body.classList.remove("minigame-focus");
   if (minigameLoop) cancelAnimationFrame(minigameLoop);
@@ -1949,6 +1946,46 @@ function closeFishDetails() {
 
 // Evento de fechar
 elements.fishDetails.btnClose.addEventListener("click", closeFishDetails);
+
+function unlockAllAudio() {
+  // Desbloqueia todos os efeitos sonoros
+  Object.values(audioContext.sounds).forEach((sound) => {
+    sound.muted = true; // Garante silêncio no desbloqueio
+    sound
+      .play()
+      .then(() => {
+        sound.pause();
+        sound.currentTime = 0;
+        sound.muted = false;
+      })
+      .catch(() => {});
+  });
+
+  // Tocar música do menu após desbloqueio
+  if (gameState.phase === "idle") {
+    playMenuMusic();
+  }
+}
+
+// Usar pointerdown para cobrir touch e mouse instantaneamente
+document.addEventListener("pointerdown", unlockAllAudio, { once: true });
+
+function updateFishingSound() {
+  if (audioContext.soundsMuted) return;
+
+  const sound = audioContext.sounds.fishing;
+
+  if (isHolding && !fishingSoundPlaying) {
+    sound.loop = true;
+    sound.volume = audioContext.soundsVolume;
+    sound.play().catch(() => {});
+    fishingSoundPlaying = true;
+  } else if (!isHolding && fishingSoundPlaying) {
+    sound.pause();
+    sound.currentTime = 0;
+    fishingSoundPlaying = false;
+  }
+}
 
 loadGame();
 updateMenuUI();

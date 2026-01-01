@@ -2,7 +2,10 @@
 <html lang="pt-BR" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Pescaria Pixel</title>
     <meta
       name="description"
@@ -1016,123 +1019,106 @@
 
     <div class="minigame-overlay" id="minigame-overlay">
       <div
-        class="absolute inset-0 z-0 bg-black/60 backdrop-blur-sm transition-all duration-500 minigame-background"
+        class="absolute inset-0 z-0 bg-black/60 backdrop-blur-sm minigame-background"
       ></div>
 
       <div class="countdown" id="countdown">3</div>
 
       <div
-        class="relative z-10 flex w-full h-full items-center justify-center gap-12 px-8"
+        class="relative z-10 flex flex-col w-full h-full items-center justify-center gap-6 md:gap-10 px-8"
       >
+        <div id="minigame-global-info" class="text-center animate-fade-in pt-4">
+          <h4
+            id="minigame-area-name"
+            class="text-primary font-black uppercase tracking-[0.3em] text-xs md:text-sm mb-1"
+          >
+            ---
+          </h4>
+          <div
+            id="minigame-area-difficulty"
+            class="flex justify-center gap-1 text-yellow-500 text-sm"
+          ></div>
+        </div>
+
         <div
-          class="hidden md:flex flex-col gap-4 min-w-[250px] animate-slide-in-left"
+          class="flex w-full h-full items-center justify-center gap-6 md:gap-12"
         >
           <div
-            class="bg-surface-dark/90 backdrop-blur-md border border-white/10 p-5 rounded-2xl shadow-2xl relative overflow-hidden group"
+            class="hidden md:flex flex-col gap-4 min-w-[250px] animate-slide-in-left"
           >
-            <div class="absolute top-0 right-0 p-3 opacity-10">
-              <span class="material-symbols-outlined text-6xl">phishing</span>
-            </div>
-
-            <p
-              class="text-primary text-xs font-bold uppercase tracking-widest mb-2"
+            <div
+              class="bg-surface-dark/90 backdrop-blur-md border border-white/10 p-5 rounded-2xl shadow-2xl relative overflow-hidden group"
             >
-              Alvo Identificado
-            </p>
-            <div class="flex items-center gap-4">
-              <div class="relative">
-                <span
-                  id="minigame-fish-emoji"
-                  class="text-5xl filter drop-shadow-lg transform transition-transform group-hover:scale-110 duration-300 inline-block"
-                  >🐟</span
-                >
+              <div class="absolute top-0 right-0 p-3 opacity-10">
+                <span class="material-symbols-outlined text-6xl">phishing</span>
               </div>
-              <div>
-                <h3
-                  id="minigame-fish-name"
-                  class="text-2xl font-black text-white font-display leading-none mb-1"
-                >
-                  Peixe
-                </h3>
-                <div
-                  id="minigame-difficulty"
-                  class="text-yellow-400 text-sm tracking-widest"
-                >
-                  ⭐⭐⭐
+              <p
+                class="text-primary text-[10px] font-black uppercase tracking-widest mb-2"
+              >
+                Alvo Identificado
+              </p>
+              <div class="flex items-center gap-4">
+                <div class="relative">
+                  <span
+                    id="minigame-fish-emoji"
+                    class="text-5xl filter drop-shadow-lg inline-block"
+                  ></span>
+                </div>
+                <div>
+                  <h3
+                    id="minigame-fish-name"
+                    class="text-xl font-black text-white font-display leading-none mb-1 uppercase italic"
+                  >
+                    ---
+                  </h3>
+                  <div
+                    id="minigame-difficulty"
+                    class="text-yellow-400 text-xs tracking-widest"
+                  ></div>
                 </div>
               </div>
             </div>
+            <div
+              class="bg-black/40 backdrop-blur-md rounded-xl p-3 border border-white/5 flex items-center justify-center"
+            >
+              <p
+                class="text-white/60 text-[10px] font-black uppercase tracking-tighter"
+              >
+                Segure para subir • Solte para descer
+              </p>
+            </div>
           </div>
 
           <div
-            class="bg-black/40 backdrop-blur-md rounded-xl p-3 border border-white/5 flex items-center gap-3"
-          >
-            <p class="text-white/60 text-xs font-bold uppercase">
-              Segure para subir
-            </p>
-          </div>
-        </div>
-
-        <div class="relative flex gap-6 items-center heigh-auto">
-          <div
-            class="h-full w-6 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 relative overflow-hidden shadow-2xl"
-          >
-            <div class="absolute inset-0 bg-white/5"></div>
-            <div
-              id="catch-progress-fill"
-              class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-green-600 via-emerald-400 to-green-300 transition-all duration-100 ease-linear shadow-[0_0_15px_rgba(16,185,129,0.6)]"
-              style="height: 0%"
-            ></div>
-          </div>
-
-          <div
-            id="fishing-bar"
-            class="h-full w-20 bg-[#0f172a]/90 backdrop-blur-xl rounded-full border-2 border-[#334155] relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] ring-4 ring-black/20"
+            class="relative flex gap-4 md:gap-6 items-center heigh-auto h-[68vh]"
           >
             <div
-              class="absolute inset-0 opacity-10"
-              style="
-                background-image: linear-gradient(#fff 1px, transparent 1px),
-                  linear-gradient(90deg, #fff 1px, transparent 1px);
-                background-size: 30px 30px;
-              "
-            ></div>
-
-            <div
-              id="catch-zone"
-              class="absolute left-1 right-1 h-[25%] rounded-lg bg-primary/30 border border-primary/50 shadow-[0_0_20px_rgba(25,161,230,0.4)] z-10 flex items-center justify-center backdrop-blur-sm transition-none will-change-top"
-              style="top: 50%"
+              class="h-full w-4 md:w-6 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 relative overflow-hidden shadow-2xl"
             >
               <div
-                class="w-full h-[1px] bg-primary/60 shadow-[0_0_5px_#fff]"
+                id="catch-progress-fill"
+                class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-green-600 via-emerald-400 to-green-300 transition-none"
+                style="height: 30%"
               ></div>
             </div>
 
             <div
-              id="fish-marker"
-              class="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-none will-change-top"
-              style="top: 50%"
+              id="fishing-bar"
+              class="h-full w-16 md:w-20 bg-[#0f172a]/90 backdrop-blur-xl rounded-full border-2 border-[#334155] relative overflow-hidden shadow-2xl"
             >
               <div
-                class="relative transition-transform duration-200"
-                id="fish-marker-inner"
+                id="catch-zone"
+                class="absolute left-1 right-1 h-[25%] rounded-lg bg-primary/30 border border-primary/50 shadow-[0_0_20px_rgba(25,161,230,0.4)] z-10 backdrop-blur-sm transition-none"
+                style="top: 50%"
+              ></div>
+              <div
+                id="fish-marker"
+                class="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-none"
+                style="top: 50%"
               >
-                <span
-                  class="text-3xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-fish"
-                  >🐟</span
-                >
-                <div
-                  class="absolute -right-2 top-1 w-1.5 h-1.5 bg-white/60 rounded-full animate-ping"
-                ></div>
+                <div class="relative" id="fish-marker-inner"></div>
               </div>
             </div>
-
-            <div
-              class="absolute top-3 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-red-500/30"
-            ></div>
-            <div
-              class="absolute bottom-3 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-red-500/30"
-            ></div>
           </div>
         </div>
       </div>

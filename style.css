@@ -2097,20 +2097,20 @@ body.minigame-focus * {
   }
 }
 
-
-#catch-zone, 
-#fish-marker, 
+#catch-zone,
+#fish-marker,
 #catch-progress-fill,
 .progress-fill {
-    will-change: transform;
-    backface-visibility: hidden;
-    perspective: 1000;
-    transition: none !important; /* Remove transições CSS para não conflitar com o JS */
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000;
+  transition: none !important; /* Remove transições CSS para não conflitar com o JS */
 }
 
 /* Reset de posição para usar transform adequadamente */
-#catch-zone, #fish-marker {
-    top: 0 !important;
+#catch-zone,
+#fish-marker {
+  top: 0 !important;
 }
 
 .paused * {
@@ -2118,17 +2118,35 @@ body.minigame-focus * {
 }
 
 #fish-details-modal.active {
-    pointer-events: auto;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
 }
 
 /* Garante que o item de peixe na mochila pareça clicável */
 .fish-item {
-    cursor: pointer;
-    transition: transform 0.1s;
+  cursor: pointer;
+  transition: transform 0.1s;
 }
 
 .fish-item:active {
-    transform: scale(0.9);
+  transform: scale(0.9);
+}
+
+#minigame-area-name {
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+html,
+body {
+  touch-action: manipulation;
+  overscroll-behavior: none; /* Impede o "puxar para atualizar" que pode bugar o jogo */
+}
+
+#minigame-overlay,
+#fishing-bar,
+#catch-zone {
+  touch-action: none;
 }
