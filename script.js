@@ -1,3 +1,5 @@
+// version 0.1.10
+
 const RARITY_LABELS = {
   common: "Comum",
   uncommon: "Incomum",
