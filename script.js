@@ -5,15 +5,6 @@ const RARITY_LABELS = {
   legendary: "Lendário",
 };
 
-const isIOS = [
-  'iPad Simulator',
-  'iPhone Simulator',
-  'iPod Simulator',
-  'iPad',
-  'iPhone',
-  'iPod'
-].includes(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
-
 // --- NOVAS CONFIGURAÇÕES DE EVENTOS (MARÉS) ---
 const EVENT_TYPES = {
   POSITIVE: [
@@ -197,9 +188,6 @@ function injectPrestigeContent() {
 function playSound(soundKey) {
   if (audioContext.soundsMuted) return;
 
-  if (!isIOS && (soundKey === "fishing" || soundKey === "battle")) {
-    return;
-  }
   const sound = audioContext.sounds[soundKey];
   if (!sound) return;
 
@@ -2084,4 +2072,3 @@ loadGame();
 updateMenuUI();
 // Loop de verificação de marés a cada 30 segundos
 setInterval(updateUI, 30000);
-
