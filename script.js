@@ -197,7 +197,7 @@ function injectPrestigeContent() {
 function playSound(soundKey) {
   if (audioContext.soundsMuted) return;
 
-  if (isIOS && (soundKey === "fishing" || soundKey === "battle")) {
+  if (!isIOS && (soundKey === "fishing" || soundKey === "battle")) {
     return;
   }
   const sound = audioContext.sounds[soundKey];
