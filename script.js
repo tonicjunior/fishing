@@ -1834,10 +1834,14 @@ document.getElementById("btn-go-to-menu").addEventListener("click", () => {
     document.getElementById("setup-nickname").value.trim() || "Pescador";
   gameState.playerName = nick;
   localStorage.setItem("player-name", nick);
+
+  // --- Ação de Áudio aqui ---
+  warmUpAudio();
+  // --------------------------
+
   document.getElementById("initial-flow").classList.add("hidden");
   showScreen("menu");
   updateMenuUI();
-  if (!audioContext.musicMuted) playMenuMusic();
 });
 
 function checkPrestigeEligibility() {
@@ -2015,11 +2019,51 @@ function unlockAllAudio() {
         sound.currentTime = 0;
         sound.muted = false;
       })
-      .catch(() => {});
+      .catch((err) => console.log("Erro no desbloqueio:", err));
   });
-  if (gameState.phase === "idle") playMenuMusic();
+
+  if (!audioContext.musicMuted && gameState.phase === "idle") {
+    playMenuMusic();
+  }
+
+  // Remove manualmente todos para evitar conflitos
+  eventsToUnlock.forEach((event) => {
+    document.removeEventListener(event, unlockAllAudio);
+  });
 }
-document.addEventListener("pointerdown", unlockAllAudio, { once: true });
+
+// Lista de eventos para garantir captura no Android
+const eventsToUnlock = ["pointerdown", "touchstart", "click"];
+eventsToUnlock.forEach((event) => {
+  document.addEventListener(event, unlockAllAudio);
+});
+
+function warmUpAudio() {
+  // Itera por todos os sons configurados no seu audioContext
+  Object.values(audioContext.sounds).forEach((sound) => {
+    // Configuramos o volume como 0 e o som como mudo por segurança
+    sound.muted = true;
+    sound.volume = 0;
+
+    // Toca e pausa imediatamente
+    sound
+      .play()
+      .then(() => {
+        sound.pause();
+        sound.currentTime = 0;
+        sound.muted = false; // Restaura para uso futuro
+        sound.volume = audioContext.soundsVolume; // Restaura o volume padrão
+      })
+      .catch((err) => {
+        console.warn("Áudio ainda bloqueado pelo sistema:", err);
+      });
+  });
+
+  // Se a música estiver ativa, já inicia a trilha do menu
+  if (!audioContext.musicMuted) {
+    playMenuMusic();
+  }
+}
 
 function updateFishingSound() {
   if (audioContext.soundsMuted) return;
