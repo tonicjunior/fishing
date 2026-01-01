@@ -2116,3 +2116,19 @@ body.minigame-focus * {
 .paused * {
   animation-play-state: paused !important;
 }
+
+#fish-details-modal.active {
+    pointer-events: auto;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+}
+
+/* Garante que o item de peixe na mochila pareça clicável */
+.fish-item {
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.fish-item:active {
+    transform: scale(0.9);
+}

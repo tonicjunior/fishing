@@ -409,6 +409,7 @@ function loadGame() {
         AREAS.find((a) => a.id === parsed.currentArea?.id) || AREAS[0];
       gameState.phase = "idle";
       gameState.isSelling = false;
+      renderAlbumInventory();
     } catch (e) {
       console.error("Failed to load save:", e);
     }
@@ -442,6 +443,18 @@ const elements = {
     btnResetSave: document.getElementById("btn-reset-save"),
     btnOpenMap: document.getElementById("btn-open-map"),
     btnCloseMap: document.getElementById("btn-close-map"),
+  },
+  fishDetails: {
+    modal: document.getElementById("fish-details-modal"),
+    card: document.getElementById("fish-details-modal").firstElementChild,
+    img: document.getElementById("fish-detail-img"),
+    name: document.getElementById("fish-detail-name"),
+    rarity: document.getElementById("fish-detail-rarity"),
+    price: document.getElementById("fish-detail-price"),
+    difficulty: document.getElementById("fish-detail-difficulty"),
+    depth: document.getElementById("fish-detail-depth"),
+    count: document.getElementById("fish-detail-count"),
+    btnClose: document.getElementById("btn-close-fish-details"),
   },
   playerLevel: document.getElementById("player-level"),
   playerMoney: document.getElementById("player-money"),
@@ -588,7 +601,9 @@ function updateFishInventory() {
     elements.fishInventory.innerHTML = gameState.inventory
       .map(
         (fish) =>
-          `<div class="fish-item ${fish.rarity}" title="${fish.name}"><img src="${fish.image}" class="w-8 h-8 object-contain"></div>`
+          `<div class="fish-item ${fish.rarity}" onclick="showFishDetails('${fish.id}')">
+         <img src="${fish.image}" class="w-8 h-8 object-contain pointer-events-none">
+       </div>`
       )
       .join("");
   }
@@ -966,8 +981,20 @@ function startSearching() {
 
 function startCountdown() {
   stopMenuMusic();
-  audioContext.sounds.battle.load();
-  playSound("battle");
+
+  if (!audioContext.musicMuted) {
+    audioContext.sounds.battle.volume = audioContext.musicVolume;
+    audioContext.sounds.battle.play().catch(() => {});
+  }
+
+  // Melhoria 2: Preparar o som de fishing em silêncio (Contínuo)
+  if (!audioContext.soundsMuted) {
+    audioContext.sounds.fishing.loop = true;
+    audioContext.sounds.fishing.volume = 0;
+    audioContext.sounds.fishing
+      .play()
+      .catch((e) => console.log("Erro áudio:", e));
+  }
 
   // --- RESET VISUAL DA INTERFACE ---
   elements.minigameFishEmoji.innerHTML = `<div class="w-20 h-20 bg-white/5 animate-pulse rounded-full flex items-center justify-center text-4xl">?</div>`;
@@ -1059,6 +1086,14 @@ function startMinigame() {
     const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
     lastTime = currentTime;
 
+    // --- MELHORIA 2: CONTROLE DE VOLUME DO SOM DE PESCA ---
+    if (!audioContext.soundsMuted) {
+      // Se estiver segurando, volume = sonsVolume, se soltar, volume = 0
+      audioContext.sounds.fishing.volume = isHolding
+        ? audioContext.soundsVolume
+        : 0;
+    }
+
     const difficulty = Math.max(
       1,
       currentFish.difficulty * BALANCE.baseDifficulty -
@@ -1077,25 +1112,26 @@ function startMinigame() {
       }
 
       fishPosition += fishVelocity * fishDirection * deltaTime;
-      fishPosition = Math.max(0, Math.min(100, fishPosition));
+
+      // --- MELHORIA 3: LIMITES (PADDING) PARA O PEIXE ---
+      const fishPadding = 5; // O peixe nunca passará de 5% ou 95% da barra
+      fishPosition = Math.max(
+        fishPadding,
+        Math.min(100 - fishPadding, fishPosition)
+      );
     }
 
     // Movimento da Barra do Jogador
     zonePosition += (isHolding ? -185 : 75) * deltaTime;
     zonePosition = Math.max(0, Math.min(100, zonePosition));
 
-    // --- CÁLCULO CORRIGIDO EM PIXELS ---
+    // Cálculos de renderização (mantendo sua lógica de pixels)
     const barHeight = elements.fishingBar.clientHeight;
     const zoneHeight = elements.catchZone.clientHeight;
-
-    // Calcula o topo máximo que a zona pode ir (em pixels)
     const maxZoneTopPx = barHeight - zoneHeight;
     const zoneYPx = (zonePosition / 100) * maxZoneTopPx;
-
-    // Calcula a posição do peixe (em pixels)
     const fishYPx = (fishPosition / 100) * barHeight;
 
-    // Aplica as transformações usando PX
     elements.catchZone.style.transform = `translateY(${zoneYPx}px)`;
     elements.fishMarker.style.transform = `translate(-50%, ${fishYPx}px) translateY(-50%)`;
 
@@ -1104,15 +1140,11 @@ function startMinigame() {
         fishDirection > 0 ? "scaleX(1)" : "scaleX(-1)";
     }
 
-    // Lógica de Captura (Baseada na posição 0-100 para consistência)
-    // Convertemos zoneYPx de volta para porcentagem relativa ao barHeight para comparar com fishPosition
     const zoneTopPct = (zoneYPx / barHeight) * 100;
     const zoneBottomPct = ((zoneYPx + zoneHeight) / barHeight) * 100;
-
     const inZone = fishPosition >= zoneTopPct && fishPosition <= zoneBottomPct;
 
     elements.catchZone.classList.toggle("catching", inZone);
-
     catchProgress = Math.max(
       0,
       Math.min(100, catchProgress + (inZone ? 0.4 : -0.25))
@@ -1126,14 +1158,20 @@ function startMinigame() {
 
   minigameLoop = requestAnimationFrame(gameLoop);
 }
+
 // GATILHO DE SALVAMENTO: FIM DE PESCA
 function endMinigame(success) {
   minigameActive = false;
   audioContext.sounds.travel.pause();
   audioContext.sounds.find.pause();
+
   audioContext.sounds.battle.pause();
   audioContext.sounds.battle.currentTime = 0;
+
   audioContext.sounds.fishing.pause();
+  audioContext.sounds.fishing.currentTime = 0;
+  audioContext.sounds.fishing.volume = 0;
+
   document.body.classList.remove("minigame-focus");
   if (minigameLoop) cancelAnimationFrame(minigameLoop);
   if (window.navigator.vibrate)
@@ -1154,6 +1192,7 @@ function endMinigame(success) {
       currentFish.id,
       currentFish.difficulty
     );
+    renderAlbumInventory();
     showResultModal(true);
   } else showResultModal(false);
 
@@ -1208,14 +1247,10 @@ elements.btnCloseResult.addEventListener("click", () =>
 function handleHoldStart() {
   if (minigameActive) {
     isHolding = true;
-    if (!audioContext.soundsMuted)
-      audioContext.sounds.fishing.play().catch(() => {});
   }
 }
 function handleHoldEnd() {
   isHolding = false;
-  audioContext.sounds.fishing.pause();
-  audioContext.sounds.fishing.currentTime = 0;
 }
 
 document.addEventListener("keydown", (e) => {
@@ -1491,7 +1526,9 @@ function renderAlbumInventory() {
   ).textContent = `${gameState.caughtSpecies.length}/${FISH_DATA.length}`;
   container.innerHTML = FISH_DATA.map((fish) => {
     const isCaught = gameState.caughtSpecies.includes(fish.id);
-    return `<div class="relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
+    return `<div onclick="showFishDetails('${
+      fish.id
+    }')" class="relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all cursor-pointer ${
       isCaught
         ? "bg-surface-dark border-primary/30 shadow-lg"
         : "bg-black/40 border-white/5 opacity-40"
@@ -1574,6 +1611,8 @@ document.getElementById("volume-music").addEventListener("input", (e) => {
   audioContext.musicVolume = e.target.value;
   if (audioContext.currentMenuMusic)
     audioContext.currentMenuMusic.volume = e.target.value;
+
+  // Melhoria 1: Ajusta volume da batalha em tempo real se estiver ocorrendo
   audioContext.sounds.battle.volume = e.target.value;
 });
 
@@ -1862,6 +1901,47 @@ document
 document.addEventListener("visibilitychange", () => {
   document.body.classList.toggle("paused", document.hidden);
 });
+
+function showFishDetails(fishId) {
+  const fish =
+    FISH_DATA.find((f) => f.id === fishId) ||
+    PRESTIGE_CONTENT.fish_level_2.find((f) => f.id === fishId);
+  if (!fish) return;
+
+  const isCaught = gameState.caughtSpecies.includes(fish.id);
+
+  playSound("click");
+
+  // Preencher dados
+  elements.fishDetails.img.src = fish.image;
+  elements.fishDetails.name.textContent = isCaught ? fish.name : "???";
+  elements.fishDetails.price.textContent = `$${fish.price}`;
+  elements.fishDetails.depth.textContent = `${fish.minDepth * 10}m`;
+  elements.fishDetails.count.textContent = gameState.caughtCounts[fish.id] || 0;
+
+  // Dificuldade em Estrelas
+  elements.fishDetails.difficulty.innerHTML = getDifficultyStars(
+    fish.difficulty
+  );
+
+  // Raridade com cor
+  elements.fishDetails.rarity.textContent = RARITY_LABELS[fish.rarity];
+  elements.fishDetails.rarity.className = `text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${fish.rarity}`;
+
+  // Mostrar Modal
+  elements.fishDetails.modal.classList.add("active");
+  elements.fishDetails.card.style.transform = "translateY(0)";
+}
+
+function closeFishDetails() {
+  elements.fishDetails.card.style.transform = "translateY(100%)";
+  setTimeout(() => {
+    elements.fishDetails.modal.classList.remove("active");
+  }, 300);
+}
+
+// Evento de fechar
+elements.fishDetails.btnClose.addEventListener("click", closeFishDetails);
 
 loadGame();
 updateMenuUI();
