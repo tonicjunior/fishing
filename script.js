@@ -4,7 +4,15 @@ const RARITY_LABELS = {
   rare: "Raro",
   legendary: "Lendário",
 };
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+const isIOS = [
+  'iPad Simulator',
+  'iPhone Simulator',
+  'iPod Simulator',
+  'iPad',
+  'iPhone',
+  'iPod'
+].includes(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
 
 // --- NOVAS CONFIGURAÇÕES DE EVENTOS (MARÉS) ---
 const EVENT_TYPES = {
@@ -2076,3 +2084,4 @@ loadGame();
 updateMenuUI();
 // Loop de verificação de marés a cada 30 segundos
 setInterval(updateUI, 30000);
+
