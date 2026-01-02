@@ -73,14 +73,14 @@ const EVENT_TYPES = {
 
 const PRESTIGE_CONTENT = {
   fish_level_1: {
-    id: "abyssal_serpent",
-    name: "Serpente Abissal",
+    id: "void_piranha",
+    name: "Piranha do Vazio",
     rarity: "legendary",
-    price: 2500,
+    price: 3500,
     difficulty: 10,
     minDepth: 8,
-    emoji: "🐍",
-    image: "assets/fish/abyssal_serpent.png",
+    emoji: "✨",
+    image: "assets/fish/void_piranha.gif",
   },
   map_level_2: {
     id: "mystic_void",
@@ -101,14 +101,14 @@ const PRESTIGE_CONTENT = {
   },
   fish_level_2: [
     {
-      id: "void_ray",
-      name: "Raia do Vazio",
-      rarity: "rare",
-      price: 800,
-      difficulty: 8,
-      minDepth: 5,
-      emoji: "✨",
-      image: "assets/fish/void_ray.png",
+      id: "abyssal_horror",
+      name: "Aberração Abissal",
+      rarity: "legendary",
+      price: 4500,
+      difficulty: 11,
+      minDepth: 8,
+      emoji: "🕳️",
+      image: "assets/monsters/abyssal_horror.gif",
     },
     {
       id: "nebula_carp",
@@ -133,10 +133,10 @@ const PRESTIGE_CONTENT = {
     {
       id: "anglerfish",
       name: "Peixe-pescador",
-      rarity: "legendary",
+      rarity: "rare",
       price: 3500,
-      difficulty: 10,
-      minDepth: 9,
+      difficulty: 6,
+      minDepth: 5,
       emoji: "🏮",
       image: "assets/fish/anglerfish.png",
     },
@@ -174,6 +174,14 @@ function injectPrestigeContent() {
   if (gameState.prestigeLevel >= 1) {
     if (!FISH_DATA.find((f) => f.id === PRESTIGE_CONTENT.fish_level_1.id)) {
       FISH_DATA.push(PRESTIGE_CONTENT.fish_level_1);
+    }
+
+    const abyssArea = AREAS.find((a) => a.id === "abyss");
+    if (
+      abyssArea &&
+      !abyssArea.fish.includes(PRESTIGE_CONTENT.fish_level_1.id)
+    ) {
+      abyssArea.fish.push(PRESTIGE_CONTENT.fish_level_1.id);
     }
   }
 
@@ -327,7 +335,7 @@ const FISH_DATA = [
     difficulty: 9,
     minDepth: 8,
     emoji: "🐋",
-    image: "assets/fish/whale.png",
+    image: "assets/fish/whale.gif",
   },
   {
     id: "kraken",
