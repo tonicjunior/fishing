@@ -1206,7 +1206,6 @@ function startSearching() {
     }
   );
 }
-
 function startCountdown() {
   stopMenuMusic();
   currentFish = selectRandomFish();
@@ -1224,6 +1223,7 @@ function startCountdown() {
     );
   }
 
+  // Preenchimento de dados do peixe
   document.getElementById("minigame-area-name").textContent =
     gameState.currentArea.name;
   document.getElementById("minigame-area-difficulty").innerHTML =
@@ -1233,21 +1233,40 @@ function startCountdown() {
   elements.minigameDifficulty.innerHTML = getDifficultyStars(
     currentFish.difficulty
   );
-  if (fishMarkerInner)
+
+  if (fishMarkerInner) {
     fishMarkerInner.innerHTML = `<img src="${currentFish.image}" class="w-12 h-12 object-contain">`;
+  }
+
+  // --- POSICIONAMENTO INICIAL (CENTRALIZADO) ---
+  // Resetamos as variáveis lógicas
+  zonePosition = 50;
+  fishPosition = 50;
+  catchProgress = 30;
 
   const barHeight = elements.fishingBar.clientHeight;
-  const initialY = barHeight / 2;
+  const zoneHeight = elements.catchZone.clientHeight;
+
+  // Cálculo para centralizar perfeitamente
+  const initialZoneY = barHeight / 2 - zoneHeight / 2;
+  const initialFishY = barHeight / 2;
+
+  // Aplicamos o transform imediatamente
+  elements.catchZone.style.transform = `translate3d(0, ${initialZoneY}px, 0)`;
+  elements.fishMarker.style.transform = `translate3d(-50%, ${initialFishY}px, 0) translateY(-50%)`;
   elements.catchProgressFill.style.height = "30%";
-  elements.catchZone.style.transform = `translateY(${
-    initialY - elements.catchZone.clientHeight / 2
-  }px)`;
-  elements.fishMarker.style.transform = `translate(-50%, ${initialY}px) translateY(190%)`;
+
+  // --- ESCONDER ELEMENTOS PARA A CONTAGEM ---
+  // Garantimos que a barra e o peixe fiquem invisíveis durante o 3, 2, 1
+  elements.fishingBar.style.opacity = "0";
+  elements.fishMarker.style.opacity = "0";
+  elements.catchProgressFill.parentElement.style.opacity = "0"; // Barra de progresso lateral
 
   if (!audioContext.musicMuted) {
     audioContext.sounds.battle.volume = audioContext.musicVolume;
     audioContext.sounds.battle.play().catch(() => {});
   }
+
   if (!audioContext.soundsMuted) {
     audioContext.sounds.fishing.loop = true;
     audioContext.sounds.fishing.volume = 0;
@@ -1259,15 +1278,25 @@ function startCountdown() {
 
   let count = 3;
   elements.countdown.textContent = count;
+
   const countInterval = setInterval(() => {
     count--;
-    if (count > 0) elements.countdown.textContent = count;
-    else {
+    if (count > 0) {
+      elements.countdown.textContent = count;
+    } else {
       clearInterval(countInterval);
       elements.countdown.textContent = "FISGOU!";
+
+      // --- MOSTRAR ELEMENTOS E INICIAR ---
       setTimeout(() => {
         elements.countdown.classList.remove("active");
         elements.minigameOverlay.classList.add("game-active");
+
+        // Torna visível com uma transição suave
+        elements.fishingBar.style.opacity = "1";
+        elements.fishMarker.style.opacity = "1";
+        elements.catchProgressFill.parentElement.style.opacity = "1";
+
         startMinigame();
       }, 500);
     }
@@ -1288,7 +1317,6 @@ let barHeight = 0;
 let zoneHeight = 0;
 
 const fishMarkerInner = document.getElementById("fish-marker-inner");
-
 
 let lastHoldingState = false;
 
