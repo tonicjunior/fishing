@@ -1284,7 +1284,20 @@ let currentFish = null,
   catchProgress = 30,
   minigameLoop = null,
   minigameStartTime = 0;
+let barHeight = 0;
+let zoneHeight = 0;
+
 const fishMarkerInner = document.getElementById("fish-marker-inner");
+
+
+let lastHoldingState = false;
+
+function updateFishingSoundOptimized() {
+  if (isHolding !== lastHoldingState) {
+    audioContext.sounds.fishing.volume = isHolding ? 0.6 : 0.0;
+    lastHoldingState = isHolding;
+  }
+}
 
 function startMinigame() {
   gameState.phase = "fishing";
@@ -1310,11 +1323,15 @@ function startMinigame() {
   elements.catchZone.style.height = `${finalHeightPct}%`;
 
   let lastTime = performance.now();
+
+  barHeight = elements.fishingBar.clientHeight;
+  zoneHeight = elements.catchZone.clientHeight;
+
   function gameLoop(currentTime) {
     if (!minigameActive) return;
     const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
     lastTime = currentTime;
-    updateFishingSound();
+    updateFishingSoundOptimized();
 
     let fishDiffBase = currentFish.difficulty;
     let balanceMultiplier = 1;
@@ -1345,13 +1362,11 @@ function startMinigame() {
     zonePosition += (isHolding ? -185 : 75) * deltaTime;
     zonePosition = Math.max(0, Math.min(100, zonePosition));
 
-    const barHeight = elements.fishingBar.clientHeight;
-    const zoneHeight = elements.catchZone.clientHeight;
     const zoneYPx = (zonePosition / 100) * (barHeight - zoneHeight);
     const fishYPx = (fishPosition / 100) * barHeight;
 
-    elements.catchZone.style.transform = `translateY(${zoneYPx}px)`;
-    elements.fishMarker.style.transform = `translate(-50%, ${fishYPx}px) translateY(-50%)`;
+    elements.catchZone.style.transform = `translate3d(0, ${zoneYPx}px, 0)`;
+    elements.fishMarker.style.transform = `translate3d(-50%, ${fishYPx}px, 0) translateY(-50%)`;
     if (fishMarkerInner)
       fishMarkerInner.style.transform =
         fishDirection > 0 ? "scaleX(1)" : "scaleX(-1)";

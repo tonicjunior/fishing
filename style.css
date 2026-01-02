@@ -1324,6 +1324,13 @@ kbd {
 }
 
 @media (max-width: 768px) {
+  .minigame-overlay,
+  .fishing-bar,
+  .fish-marker,
+  .catch-zone {
+    will-change: transform;
+  }
+
   body,
   html {
     height: 100%;
@@ -2208,8 +2215,6 @@ body {
 /* --- RESPONSIVIDADE PARA MODAIS (DESKTOP) --- */
 
 @media (min-width: 769px) {
-
-
   /* Estilização comum para o container interno das modais no Desktop */
   #fish-details-modal > div,
   #event-details-modal > div,
@@ -2217,7 +2222,7 @@ body {
     max-width: 800px; /* Bem maior que os 448px (max-w-md) originais */
     width: 80%;
     border-radius: var(--radius-xl); /* Arredonda todos os cantos */
-    border: 1px solid var(--border);  
+    border: 1px solid var(--border);
     padding: 2.5rem; /* Mais respiro interno */
   }
 
