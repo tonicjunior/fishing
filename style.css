@@ -651,7 +651,6 @@
   border-bottom: 3px solid var(--primary);
   border-radius: var(--radius-sm);
   transition: top 0.05s linear;
-  top: 50%;
 }
 .catch-zone.catching {
   background: linear-gradient(
@@ -668,7 +667,6 @@
   transform: translateX(-50%);
   font-size: 2rem;
   transition: top 0.1s linear;
-  top: 50%;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
   will-change: transform;
 }
