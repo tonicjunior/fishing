@@ -2261,3 +2261,11 @@ body {
     gap: 1.5rem;
   }
 }
+
+
+#catch-progress-fill {
+    height: 100% !important; /* Altura fixa */
+    transform-origin: bottom; /* Base da escala */
+    will-change: transform;   /* Pré-renderização na GPU */
+    transition: none !important; /* Remove delay de CSS para resposta imediata */
+}

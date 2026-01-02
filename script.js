@@ -1,9 +1,20 @@
-// version 0.1.10
+// version 0.1.50
+
+// --- CONFIGURAÇÕES DE PERFORMANCE ---
+const isMobile =
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+const TARGET_FPS = isMobile ? 70 : 70; 
+const FRAME_TIME = 1000 / TARGET_FPS;
+
+let lastFrameTime = 0; // Controle de trava de FPS
+let lastTime = 0; // Controle de DeltaTime para movimento
 
 const RARITY_LABELS = {
   common: "Comum",
-  uncommon: "Incomum",
-  rare: "Raro",
+  uncommon: "Raro",
+  rare: "Épico",
   legendary: "Lendário",
 };
 
@@ -1313,6 +1324,8 @@ let currentFish = null,
   catchProgress = 30,
   minigameLoop = null,
   minigameStartTime = 0;
+// ------------------------------------
+
 let barHeight = 0;
 let zoneHeight = 0;
 
@@ -1357,27 +1370,35 @@ function startMinigame() {
 
   function gameLoop(currentTime) {
     if (!minigameActive) return;
+
+    // 1. TRAVA DE FPS (Apenas processa se passou o tempo do TARGET_FPS)
+    const elapsedSinceLastFrame = currentTime - lastFrameTime;
+    if (elapsedSinceLastFrame < FRAME_TIME) {
+      minigameLoop = requestAnimationFrame(gameLoop);
+      return;
+    }
+
+    // 2. CÁLCULO DE DELTA TIME (Consistência de movimento)
     const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
+
+    // Atualiza os timestamps sincronizados
+    lastFrameTime = currentTime - (elapsedSinceLastFrame % FRAME_TIME);
     lastTime = currentTime;
+
+    // 3. OTIMIZAÇÕES DE ÁUDIO E LÓGICA
     updateFishingSoundOptimized();
 
     let fishDiffBase = currentFish.difficulty;
-    let balanceMultiplier = 1;
-    if (fishDiffBase >= 1 && fishDiffBase <= 5) balanceMultiplier = 1.15;
-    else if (fishDiffBase >= 6 && fishDiffBase <= 7) balanceMultiplier = 0.85;
-    else if (fishDiffBase >= 8 && fishDiffBase <= 10) balanceMultiplier = 0.75;
-
-    // Snapshot do Peixe Nervoso
-    const fishSpeedMod = activeEventAtStart?.effect?.fishSpeed || 1;
-    const difficulty = Math.max(
+    let difficulty = Math.max(
       1,
-      fishDiffBase * balanceMultiplier * BALANCE.baseDifficulty -
-        (gameState.rod.stability * stabilityMod) / 4
+      fishDiffBase * 0.62 - gameState.rod.stability / 4
     );
 
+    // Lógica de decisão do peixe
     fishDecisionTimer += deltaTime;
     if (fishDecisionTimer > 0.15) {
       fishDecisionTimer = 0;
+      const fishSpeedMod = activeEventAtStart?.effect?.fishSpeed || 1;
       if (Math.random() < 0.25 + difficulty * 0.05) {
         fishDirection = Math.random() > 0.5 ? 1 : -1;
         fishVelocity =
@@ -1385,6 +1406,7 @@ function startMinigame() {
       }
     }
 
+    // 4. MOVIMENTAÇÃO COM ACELERAÇÃO DE HARDWARE (GPU)
     fishPosition += fishVelocity * fishDirection * deltaTime;
     fishPosition = Math.max(5, Math.min(95, fishPosition));
     zonePosition += (isHolding ? -185 : 75) * deltaTime;
@@ -1393,25 +1415,21 @@ function startMinigame() {
     const zoneYPx = (zonePosition / 100) * (barHeight - zoneHeight);
     const fishYPx = (fishPosition / 100) * barHeight;
 
+    // Usando translate3d para evitar Reflow no Mobile
     elements.catchZone.style.transform = `translate3d(0, ${zoneYPx}px, 0)`;
     elements.fishMarker.style.transform = `translate3d(-50%, ${fishYPx}px, 0) translateY(-50%)`;
+
     if (fishMarkerInner)
       fishMarkerInner.style.transform =
         fishDirection > 0 ? "scaleX(1)" : "scaleX(-1)";
 
+    // 5. PROGRESSO COM SCALE (GPU) EM VEZ DE HEIGHT
     const inZone =
       fishPosition >= (zoneYPx / barHeight) * 100 &&
       fishPosition <= ((zoneYPx + zoneHeight) / barHeight) * 100;
-    elements.catchZone.classList.toggle("catching", inZone);
 
-    // Snapshot do Progresso e Penalidade
     const progressSpeed = activeEventAtStart?.effect?.progressSpeed || 1;
-    let failPenalty = activeEventAtStart?.effect?.failPenalty || 1;
-
-    // Snapshot Chamado do Abismo
-    if (activeEventAtStart?.id === "abyss_call" && catchProgress < 25) {
-      failPenalty *= 1.5;
-    }
+    const failPenalty = activeEventAtStart?.effect?.failPenalty || 1;
 
     catchProgress = Math.max(
       0,
@@ -1420,7 +1438,11 @@ function startMinigame() {
         catchProgress + (inZone ? 0.45 * progressSpeed : -0.3 * failPenalty)
       )
     );
-    elements.catchProgressFill.style.height = `${catchProgress}%`;
+
+    // OTIMIZAÇÃO: Alterar height no mobile é lento, scaleY é instantâneo
+    elements.catchProgressFill.style.transform = `scaleY(${
+      catchProgress / 100
+    })`;
 
     if (catchProgress >= 100) endMinigame(true);
     else if (catchProgress <= 0) endMinigame(false);
