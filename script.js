@@ -675,7 +675,17 @@ function updateMenuUI() {
 }
 
 function updateUI() {
+  const previousExpires = gameState.activeEvents.expires;
   updateGlobalEvents(); // Refresh eventos
+
+  if (
+    previousExpires !== gameState.activeEvents.expires &&
+    !elements.screens.map.classList.contains("hidden-screen")
+  ) {
+    renderMapNodes();
+    // Se tiver uma área selecionada, re-seleciona para atualizar o badge lateral
+    if (selectedMapArea) selectMapArea(selectedMapArea);
+  }
 
   elements.playerLevel.textContent = gameState.level;
   elements.playerMoney.textContent = `💰 $${gameState.money.toLocaleString()}`;
@@ -722,7 +732,13 @@ function updateUI() {
       "hover:scale-105",
       "transition-all"
     );
-    elements.areaBadge.onclick = showEventInfoModal;
+
+    // ALTERAÇÃO AQUI: Em vez de showEventInfoModal, usamos a lógica da modal atrativa
+    elements.areaBadge.onclick = () => {
+      // Forçamos o selectedMapArea ser a área atual para a função de detalhes funcionar
+      selectedMapArea = gameState.currentArea;
+      getActiveDetailsBonus();
+    };
 
     // Add pulsing effect based on type
     const isPos =
@@ -1000,8 +1016,26 @@ elements.map.btnTravel.addEventListener("click", () => {
       showToast("Você já está ocupado!", "error");
       return;
     }
+
     gameState.currentArea = selectedMapArea;
     elements.map.card.classList.remove("active");
+
+    if (window.innerWidth <= 768) {
+      document
+        .querySelectorAll(".mobile-nav-btn, .mobile-fish-btn")
+        .forEach((b) => b.classList.remove("active"));
+      const gameBtn = document.querySelector(
+        '.mobile-fish-btn[data-target="game"]'
+      );
+      if (gameBtn) gameBtn.classList.add("active");
+
+      document
+        .querySelectorAll(".mobile-view")
+        .forEach((v) => v.classList.remove("active"));
+      const gameView = document.getElementById("mobile-view-game");
+      if (gameView) gameView.classList.add("active");
+    }
+
     showScreen("game");
     saveGame();
     updateUI();
@@ -2112,6 +2146,92 @@ document.addEventListener(
   },
   false
 );
+
+const areaFishModal = document.getElementById("area-fish-modal");
+const areaFishList = document.getElementById("area-fish-list");
+
+document
+  .getElementById("map-detail-fish-types")
+  .addEventListener("click", () => {
+    if (!selectedMapArea) return;
+    playSound("click");
+
+    areaFishList.innerHTML = selectedMapArea.fish
+      .map((fishId) => {
+        const fish = FISH_DATA.find((f) => f.id === fishId);
+        const isCaught = gameState.caughtSpecies.includes(fishId);
+
+        return `
+            <div class="flex flex-col items-center p-3 bg-white/5 rounded-2xl border border-white/5 ${
+              isCaught ? "" : "opacity-40"
+            }">
+                <img src="${fish.image}" class="w-10 h-10 object-contain mb-2 ${
+          isCaught ? "" : "brightness-0"
+        }">
+                <span class="text-[9px] font-bold text-white text-center leading-tight uppercase truncate w-full">
+                    ${isCaught ? fish.name : "???"}
+                </span>
+                ${
+                  isCaught
+                    ? `<span class="text-[7px] text-primary font-black uppercase mt-1">${
+                        RARITY_LABELS[fish.rarity]
+                      }</span>`
+                    : ""
+                }
+            </div>
+        `;
+      })
+      .join("");
+
+    areaFishModal.classList.remove("pointer-events-none");
+    areaFishModal.firstElementChild.style.transform = "translateY(0)";
+  });
+
+document.getElementById("btn-close-area-fish").addEventListener("click", () => {
+  areaFishModal.firstElementChild.style.transform = "translateY(100%)";
+  setTimeout(() => areaFishModal.classList.add("pointer-events-none"), 300);
+});
+
+// --- MODAL DE DETALHES DO BÔNUS (MARÉ) ---
+const eventModal = document.getElementById("event-details-modal");
+
+function getActiveDetailsBonus() {
+  const event = getActiveEventForArea(selectedMapArea.id);
+  if (!event) return;
+
+  playSound("click");
+  const isPos = gameState.activeEvents.positive?.event.id === event.id;
+
+  document.getElementById("event-detail-type-title").textContent = isPos
+    ? "Maré Favorável"
+    : "Maré Hostil";
+  document.getElementById("event-detail-icon").textContent = event.icon;
+  document.getElementById("event-detail-name").textContent = event.name;
+  document.getElementById("event-detail-desc").textContent = event.desc;
+
+  // Timer simples
+  const minutesLeft = Math.ceil(
+    (gameState.activeEvents.expires - Date.now()) / 60000
+  );
+  document.getElementById(
+    "event-detail-timer"
+  ).textContent = `${minutesLeft}m restantes`;
+
+  eventModal.classList.remove("pointer-events-none");
+  eventModal.firstElementChild.style.transform = "translateY(0)";
+}
+
+document.getElementById("map-detail-badge").addEventListener("click", (e) => {
+  e.stopPropagation(); // Evita conflitos de clique no card
+  getActiveDetailsBonus();
+});
+
+document
+  .getElementById("btn-close-event-details")
+  .addEventListener("click", () => {
+    eventModal.firstElementChild.style.transform = "translateY(100%)";
+    setTimeout(() => eventModal.classList.add("pointer-events-none"), 300);
+  });
 
 // Inicialização
 loadGame();

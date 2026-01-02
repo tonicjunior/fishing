@@ -2204,3 +2204,57 @@ body {
     transform: translateX(4px);
   }
 }
+
+/* --- RESPONSIVIDADE PARA MODAIS (DESKTOP) --- */
+
+@media (min-width: 769px) {
+
+
+  /* Estilização comum para o container interno das modais no Desktop */
+  #fish-details-modal > div,
+  #event-details-modal > div,
+  #area-fish-modal > div {
+    max-width: 800px; /* Bem maior que os 448px (max-w-md) originais */
+    width: 80%;
+    border-radius: var(--radius-xl); /* Arredonda todos os cantos */
+    border: 1px solid var(--border);  
+    padding: 2.5rem; /* Mais respiro interno */
+  }
+
+  /* Quando a modal estiver ativa, centraliza e escala para o tamanho normal */
+  #fish-details-modal.active > div,
+  #event-details-modal.active > div,
+  #area-fish-modal.active > div {
+    transform: translate(0, 0) scale(1); /* Remove o translate-y mobile */
+  }
+
+  /* Ajustes específicos para a Grade de Peixes da Área */
+  #area-fish-list {
+    grid-template-columns: repeat(6, 1fr); /* Mais colunas no desktop */
+    gap: 1.5rem;
+  }
+
+  /* Ajuste no Peixe do Álbum/Detalhes */
+  #fish-detail-image-container {
+    width: 120px;
+    height: 120px;
+  }
+
+  #fish-detail-name {
+    font-size: 2.5rem;
+  }
+
+  /* Ajuste na modal de Evento */
+  #event-detail-icon {
+    font-size: 6rem;
+  }
+
+  #event-detail-name {
+    font-size: 1.5rem;
+  }
+
+  /* Melhora a visualização dos stats nas modais */
+  .grid.grid-cols-2 {
+    gap: 1.5rem;
+  }
+}
