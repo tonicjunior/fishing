@@ -440,8 +440,6 @@ const RARITY_CHANCES = {
 const XP_PER_FISH = { common: 5, uncommon: 15, rare: 40, legendary: 100 };
 const XP_PER_LEVEL = 100;
 
-let hasUsedRehook = false; // Controle para ocorrer apenas uma vez por peixe
-
 let gameState = {
   money: 0,
   xp: 0,
@@ -450,8 +448,8 @@ let gameState = {
   totalFish: 0,
   totalEarned: 0,
   rod: { depth: 1, stability: 1, bait: 1 },
-  boat: { rehook: 1, speed: 1, sonar: 1 }, // rehook substituiu capacity
-  bonuses: { slow: 0, xp: 0, sell: 0, rare: 0 }, // slow substituiu time
+  boat: { capacity: 10, speed: 1, sonar: 1 },
+  bonuses: { time: 0, xp: 0, sell: 0, rare: 0 },
   inventory: [],
   caughtSpecies: [],
   caughtCounts: {},
@@ -462,12 +460,6 @@ let gameState = {
   prestigePoints: 0,
   activeEvents: { positive: null, negative: null, expires: 0 },
 };
-
-// Adicione estes IDs ao objeto elements
-elements.rehookDots = document.getElementById("rehook-dots");
-elements.btnRehook = document.getElementById("btn-rehook");
-elements.slowBonus = document.getElementById("slow-bonus");
-elements.rehookModal = document.getElementById("rehook-modal");
 
 const BALANCE = {
   baseDifficulty: 0.62,
@@ -577,10 +569,6 @@ function saveGame() {
 }
 
 const elements = {
-  rehookDots: document.getElementById("rehook-dots"),
-  btnRehook: document.getElementById("btn-rehook"),
-  slowBonus: document.getElementById("slow-bonus"),
-  rehookModal: document.getElementById("rehook-modal"),
   screens: {
     menu: document.getElementById("menu-screen"),
     game: document.getElementById("game-screen"),
@@ -735,12 +723,13 @@ function updateUI() {
   elements.totalFish.textContent = gameState.totalFish;
   elements.totalEarned.textContent = `$${gameState.totalEarned.toLocaleString()}`;
 
- const capacity = 5 + (gameState.level * 2); 
+  const capacity = gameState.boat.capacity;
   const count = gameState.inventory.length;
   elements.boatCapacity.textContent = `${count}/${capacity}`;
   elements.boatCapacity.classList.toggle("full", count >= capacity);
   elements.capacityFill.style.width = `${(count / capacity) * 100}%`;
-  
+  elements.capacityFill.classList.toggle("full", count >= capacity);
+
   updateFishInventory();
   updateSellSection();
   updateUpgrades();
@@ -1382,69 +1371,59 @@ function startMinigame() {
   function gameLoop(currentTime) {
     if (!minigameActive) return;
 
-    // 1. TRAVA DE FPS (Controle de performance para Mobile/PC)
+    // 1. TRAVA DE FPS (Apenas processa se passou o tempo do TARGET_FPS)
     const elapsedSinceLastFrame = currentTime - lastFrameTime;
     if (elapsedSinceLastFrame < FRAME_TIME) {
       minigameLoop = requestAnimationFrame(gameLoop);
       return;
     }
 
-    // 2. CÁLCULO DE DELTA TIME (Consistência de movimento independente do hardware)
+    // 2. CÁLCULO DE DELTA TIME (Consistência de movimento)
     const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
+
+    // Atualiza os timestamps sincronizados
     lastFrameTime = currentTime - (elapsedSinceLastFrame % FRAME_TIME);
     lastTime = currentTime;
 
-    // 3. OTIMIZAÇÃO DE ÁUDIO
+    // 3. OTIMIZAÇÕES DE ÁUDIO E LÓGICA
     updateFishingSoundOptimized();
 
     let fishDiffBase = currentFish.difficulty;
-    let difficulty = Math.max(1, fishDiffBase * 0.62 - gameState.rod.stability / 4);
+    let difficulty = Math.max(
+      1,
+      fishDiffBase * 0.62 - gameState.rod.stability / 4
+    );
 
-    // 4. LÓGICA DE DECISÃO E MOVIMENTAÇÃO DO PEIXE (MODIFICADA)
+    // Lógica de decisão do peixe
     fishDecisionTimer += deltaTime;
     if (fishDecisionTimer > 0.15) {
       fishDecisionTimer = 0;
-      
       const fishSpeedMod = activeEventAtStart?.effect?.fishSpeed || 1;
-      // Aplica o novo bônus passivo de lentidão (Foco Ágil)
-      const slowBonus = 1 - (gameState.bonuses.slow / 100);
-
-      // Chance do peixe mudar de comportamento baseada na dificuldade
       if (Math.random() < 0.25 + difficulty * 0.05) {
-        const isLegendary = currentFish.rarity === 'legendary';
-        const atUpperEdge = fishPosition < 25;
-        const atLowerEdge = fishPosition > 75;
-
-        // Se for Lendário ou estiver nas bordas, ele tem 70% de chance de forçar o retorno ao centro
-        if ((isLegendary || atUpperEdge || atLowerEdge) && Math.random() < 0.7) {
-            fishDirection = fishPosition > 50 ? -1 : 1; 
-        } else {
-            fishDirection = Math.random() > 0.5 ? 1 : -1;
-        }
-
-        // Velocidade final calculada com bônus de lentidão e multiplicadores de evento
-        fishVelocity = (Math.random() * 120 + 60) * (difficulty / 3) * fishSpeedMod * slowBonus;
+        fishDirection = Math.random() > 0.5 ? 1 : -1;
+        fishVelocity =
+          (Math.random() * 120 + 60) * (difficulty / 3) * fishSpeedMod;
       }
     }
 
-    // 5. ATUALIZAÇÃO DE POSIÇÕES (GPU ACCELERATED)
+    // 4. MOVIMENTAÇÃO COM ACELERAÇÃO DE HARDWARE (GPU)
     fishPosition += fishVelocity * fishDirection * deltaTime;
-    fishPosition = Math.max(5, Math.min(95, fishPosition)); // Limites da barra
-    
+    fishPosition = Math.max(5, Math.min(95, fishPosition));
     zonePosition += (isHolding ? -185 : 75) * deltaTime;
     zonePosition = Math.max(0, Math.min(100, zonePosition));
 
     const zoneYPx = (zonePosition / 100) * (barHeight - zoneHeight);
     const fishYPx = (fishPosition / 100) * barHeight;
 
-    // Aplicação visual usando translate3d para performance
+    // Usando translate3d para evitar Reflow no Mobile
     elements.catchZone.style.transform = `translate3d(0, ${zoneYPx}px, 0)`;
     elements.fishMarker.style.transform = `translate3d(-50%, ${fishYPx}px, 0) translateY(-50%)`;
 
     if (fishMarkerInner)
-      fishMarkerInner.style.transform = fishDirection > 0 ? "scaleX(1)" : "scaleX(-1)";
+      fishMarkerInner.style.transform =
+        fishDirection > 0 ? "scaleX(1)" : "scaleX(-1)";
 
-    // 6. CÁLCULO DE PROGRESSO DE CAPTURA
+    // 5. PROGRESSO COM SCALE (GPU) EM VEZ DE HEIGHT
     const inZone =
       fishPosition >= (zoneYPx / barHeight) * 100 &&
       fishPosition <= ((zoneYPx + zoneHeight) / barHeight) * 100;
@@ -1452,33 +1431,27 @@ function startMinigame() {
     const progressSpeed = activeEventAtStart?.effect?.progressSpeed || 1;
     const failPenalty = activeEventAtStart?.effect?.failPenalty || 1;
 
-    catchProgress = Math.max(0, Math.min(100, catchProgress + (inZone ? 0.45 * progressSpeed : -0.3 * failPenalty)));
+    catchProgress = Math.max(
+      0,
+      Math.min(
+        100,
+        catchProgress + (inZone ? 0.45 * progressSpeed : -0.3 * failPenalty)
+      )
+    );
 
-    // Update visual do progresso (ScaleY para evitar reflow)
-    elements.catchProgressFill.style.transform = `scaleY(${catchProgress / 100})`;
+    // OTIMIZAÇÃO: Alterar height no mobile é lento, scaleY é instantâneo
+    elements.catchProgressFill.style.transform = `scaleY(${
+      catchProgress / 100
+    })`;
 
-    // 7. CONDIÇÕES DE VITÓRIA / DERROTA
     if (catchProgress >= 100) endMinigame(true);
     else if (catchProgress <= 0) endMinigame(false);
     else minigameLoop = requestAnimationFrame(gameLoop);
   }
-  
   minigameLoop = requestAnimationFrame(gameLoop);
 }
 function endMinigame(success) {
-  if (!success && currentFish && !hasUsedRehook) {
-    const rehookChance = (gameState.boat.rehook - 1) * 0.05;
-    if (Math.random() < rehookChance) {
-      minigameActive = false;
-      if (minigameLoop) cancelAnimationFrame(minigameLoop);
-      elements.rehookModal.classList.add("active");
-      return; // Interrompe o encerramento para mostrar a modal
-    }
-  }
-
-  // Encerramento padrão
   minigameActive = false;
-  hasUsedRehook = false; // Reseta para o próximo peixe
   audioContext.sounds.battle.pause();
   audioContext.sounds.battle.currentTime = 0;
   fishingSoundPlaying = false;
@@ -1487,13 +1460,21 @@ function endMinigame(success) {
   document.body.classList.remove("minigame-focus");
   if (minigameLoop) cancelAnimationFrame(minigameLoop);
   elements.minigameOverlay.classList.remove("active");
-  setTimeout(() => elements.minigameOverlay.classList.remove("game-active"), 300);
+  setTimeout(
+    () => elements.minigameOverlay.classList.remove("game-active"),
+    300
+  );
 
   if (success && currentFish) {
     gameState.inventory.push({ ...currentFish });
     gameState.totalFish++;
-    gameState.caughtCounts[currentFish.id] = (gameState.caughtCounts[currentFish.id] || 0) + 1;
-    addXP(XP_PER_FISH[currentFish.rarity], currentFish.id, currentFish.difficulty);
+    gameState.caughtCounts[currentFish.id] =
+      (gameState.caughtCounts[currentFish.id] || 0) + 1;
+    addXP(
+      XP_PER_FISH[currentFish.rarity],
+      currentFish.id,
+      currentFish.difficulty
+    );
     renderAlbumInventory();
     showResultModal(true);
   } else showResultModal(false);
@@ -1504,21 +1485,6 @@ function endMinigame(success) {
   saveGame();
   updateUI();
 }
-
-// Listeners para a modal de repescagem
-document.getElementById("btn-rehook-try").addEventListener("click", () => {
-  elements.rehookModal.classList.remove("active");
-  hasUsedRehook = true;
-  catchProgress = 40; // Inicia com um pouco de progresso
-  minigameActive = true;
-  startMinigame(); // Reinicia o loop com o mesmo peixe
-});
-
-document.getElementById("btn-rehook-giveup").addEventListener("click", () => {
-  elements.rehookModal.classList.remove("active");
-  hasUsedRehook = true; // Impede disparar de novo na mesma falha
-  endMinigame(false);
-});
 
 function getDifficultyStars(count) {
   let stars = "";
@@ -1628,18 +1594,17 @@ function completeSell() {
 function buyUpgrade(type, category) {
   if (gameState.isSelling) return;
   let currentLevel, baseCost;
-  
   if (category === "rod") {
     currentLevel = gameState.rod[type];
     baseCost = { depth: 50, stability: 40, bait: 60 }[type];
   } else {
-    // Ajustado para remover 'capacity' e incluir 'rehook'
-    currentLevel = gameState.boat[type];
-    baseCost = { rehook: 150, speed: 120, sonar: 90 }[type];
+    currentLevel =
+      type === "capacity"
+        ? Math.floor((gameState.boat.capacity - 10) / 5) + 1
+        : gameState.boat[type];
+    baseCost = { capacity: 80, speed: 70, sonar: 90 }[type];
   }
-  
   if (currentLevel >= 10) return;
-  
   const cost = Math.floor(baseCost * Math.pow(1.5, currentLevel - 1));
   if (gameState.money < cost) {
     showToast("Dinheiro insuficiente!", "error");
@@ -1647,12 +1612,11 @@ function buyUpgrade(type, category) {
   }
 
   gameState.money -= cost;
-  if (category === "rod") {
-    gameState.rod[type]++;
-  } else {
-    gameState.boat[type]++;
+  if (category === "rod") gameState.rod[type]++;
+  else {
+    if (type === "capacity") gameState.boat.capacity += 5;
+    else gameState.boat[type]++;
   }
-  
   saveGame();
   updateUI();
 }
@@ -2342,44 +2306,8 @@ document
     setTimeout(() => eventModal.classList.add("pointer-events-none"), 300);
   });
 
-function updateUpgrades() {
-  // --- VARA (ROD) ---
-  updateDots(elements.depthDots, gameState.rod.depth, 10);
-  updateDots(elements.stabilityDots, gameState.rod.stability, 10);
-  updateDots(elements.baitDots, gameState.rod.bait, 10);
-  
-  updateUpgradeButton(elements.btnDepth, "depth", gameState.rod.depth, 50);
-  updateUpgradeButton(elements.btnStability, "stability", gameState.rod.stability, 40);
-  updateUpgradeButton(elements.btnBait, "bait", gameState.rod.bait, 60);
-
-  // --- BARCO (BOAT) ---
-  // Rehook (Segunda Chance) substitui a antiga Capacity nos Dots
-  const rehookDotsContainer = document.getElementById("rehook-dots");
-  if(rehookDotsContainer) updateDots(rehookDotsContainer, gameState.boat.rehook, 10);
-  
-  updateDots(elements.speedDots, gameState.boat.speed, 10);
-  updateDots(elements.sonarDots, gameState.boat.sonar, 10);
-
-  // Novos botões e preços ajustados
-  if(elements.btnRehook) updateUpgradeButton(elements.btnRehook, "rehook", gameState.boat.rehook, 150);
-  updateUpgradeButton(elements.btnSpeed, "speed", gameState.boat.speed, 120); 
-  updateUpgradeButton(elements.btnSonar, "sonar", gameState.boat.sonar, 90);
-}
-
-// Procure onde estão os outros bonus-time, bonus-xp e adicione:
-document.getElementById("bonus-slow").addEventListener("click", () => {
-  playSound("click");
-  if (gameState.bonusPoints > 0) {
-    gameState.bonuses.slow += 5; // Aumenta 5% de lentidão por ponto
-    gameState.bonusPoints--;
-    saveGame();
-    updateUI();
-  }
-});
 // Inicialização
 loadGame();
 updateMenuUI();
 // Loop de verificação de marés a cada 30 segundos
 setInterval(updateUI, 30000);
-
-
