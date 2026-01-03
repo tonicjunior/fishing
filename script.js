@@ -577,6 +577,10 @@ function saveGame() {
 }
 
 const elements = {
+  rehookDots: document.getElementById("rehook-dots"),
+  btnRehook: document.getElementById("btn-rehook"),
+  slowBonus: document.getElementById("slow-bonus"),
+  rehookModal: document.getElementById("rehook-modal"),
   screens: {
     menu: document.getElementById("menu-screen"),
     game: document.getElementById("game-screen"),
@@ -1624,17 +1628,18 @@ function completeSell() {
 function buyUpgrade(type, category) {
   if (gameState.isSelling) return;
   let currentLevel, baseCost;
+  
   if (category === "rod") {
     currentLevel = gameState.rod[type];
     baseCost = { depth: 50, stability: 40, bait: 60 }[type];
   } else {
-    currentLevel =
-      type === "capacity"
-        ? Math.floor((gameState.boat.capacity - 10) / 5) + 1
-        : gameState.boat[type];
-    baseCost = { capacity: 80, speed: 70, sonar: 90 }[type];
+    // Ajustado para remover 'capacity' e incluir 'rehook'
+    currentLevel = gameState.boat[type];
+    baseCost = { rehook: 150, speed: 120, sonar: 90 }[type];
   }
+  
   if (currentLevel >= 10) return;
+  
   const cost = Math.floor(baseCost * Math.pow(1.5, currentLevel - 1));
   if (gameState.money < cost) {
     showToast("Dinheiro insuficiente!", "error");
@@ -1642,11 +1647,12 @@ function buyUpgrade(type, category) {
   }
 
   gameState.money -= cost;
-  if (category === "rod") gameState.rod[type]++;
-  else {
-    if (type === "capacity") gameState.boat.capacity += 5;
-    else gameState.boat[type]++;
+  if (category === "rod") {
+    gameState.rod[type]++;
+  } else {
+    gameState.boat[type]++;
   }
+  
   saveGame();
   updateUI();
 }
@@ -2360,10 +2366,20 @@ function updateUpgrades() {
   updateUpgradeButton(elements.btnSonar, "sonar", gameState.boat.sonar, 90);
 }
 
-
+// Procure onde estão os outros bonus-time, bonus-xp e adicione:
+document.getElementById("bonus-slow").addEventListener("click", () => {
+  playSound("click");
+  if (gameState.bonusPoints > 0) {
+    gameState.bonuses.slow += 5; // Aumenta 5% de lentidão por ponto
+    gameState.bonusPoints--;
+    saveGame();
+    updateUI();
+  }
+});
 // Inicialização
 loadGame();
 updateMenuUI();
 // Loop de verificação de marés a cada 30 segundos
 setInterval(updateUI, 30000);
+
 
