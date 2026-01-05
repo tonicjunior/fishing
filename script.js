@@ -661,8 +661,6 @@ const elements = {
   playerMoney: document.getElementById("player-money"),
   xpText: document.getElementById("xp-text"),
   xpFill: document.getElementById("xp-fill"),
-  totalFish: document.getElementById("total-fish"),
-  totalEarned: document.getElementById("total-earned"),
   boatCapacity: document.getElementById("boat-capacity"),
   capacityFill: document.getElementById("capacity-fill"),
   fishInventory: document.getElementById("fish-inventory"),
@@ -773,9 +771,6 @@ function updateUI() {
   const xpForLevel = XP_PER_LEVEL * gameState.level;
   elements.xpText.textContent = `${gameState.xp}/${xpForLevel}`;
   elements.xpFill.style.width = `${(gameState.xp / xpForLevel) * 100}%`;
-
-  elements.totalFish.textContent = gameState.totalFish;
-  elements.totalEarned.textContent = `$${gameState.totalEarned.toLocaleString()}`;
 
   const capacity = gameState.boat.capacity;
   const count = gameState.inventory.length;
@@ -1830,28 +1825,101 @@ if (btnMobileMenuNav)
 
 function switchInventoryTab(tab) {
   playSound("click");
-  const cargo = document.getElementById("inventory-cargo-view"),
-    album = document.getElementById("inventory-album-view");
-  const bCargo = document.getElementById("tab-btn-cargo"),
-    bAlbum = document.getElementById("tab-btn-album");
+  const cargo = document.getElementById("inventory-cargo-view");
+  const album = document.getElementById("inventory-album-view");
+  const prestige = document.getElementById("inventory-prestige-view");
+
+  const buttons = {
+    cargo: document.getElementById("tab-btn-cargo"),
+    album: document.getElementById("tab-btn-album"),
+    prestige: document.getElementById("tab-btn-prestige"),
+  };
+
+  // Esconde tudo
+  [cargo, album, prestige].forEach((v) => v?.classList.add("hidden"));
+  Object.values(buttons).forEach((b) =>
+    b?.classList.remove("border-primary", "text-primary")
+  );
+  Object.values(buttons).forEach((b) =>
+    b?.classList.add("border-transparent", "text-gray-500")
+  );
+
+  // Mostra a aba selecionada
   if (tab === "cargo") {
     cargo.classList.remove("hidden");
-    album.classList.add("hidden");
-    bCargo.classList.add("border-primary", "text-primary");
-    bCargo.classList.remove("border-transparent", "text-gray-500");
-    bAlbum.classList.remove("border-primary", "text-primary");
-    bAlbum.classList.add("border-transparent", "text-gray-500");
-  } else {
-    cargo.classList.add("hidden");
+  } else if (tab === "album") {
     album.classList.remove("hidden");
-    bAlbum.classList.add("border-primary", "text-primary");
-    bAlbum.classList.remove("border-transparent", "text-gray-500");
-    bCargo.classList.remove("border-primary", "text-primary");
-    bCargo.classList.add("border-transparent", "text-gray-500");
     renderAlbumInventory();
+  } else if (tab === "prestige") {
+    prestige.classList.remove("hidden");
+    updatePrestigeTabUI(); // Atualiza os números da aba
   }
+
+  buttons[tab].classList.add("border-primary", "text-primary");
+  buttons[tab].classList.remove("border-transparent", "text-gray-500");
 }
 
+function updatePrestigeTabUI() {
+  const pLevel = gameState.prestigeLevel;
+
+  // Atualiza Números
+  document.getElementById("stat-p-stability").textContent =
+    pLevel >= 1 ? "+1" : "+0";
+  document.getElementById("stat-p-speed").textContent =
+    pLevel >= 1 ? "+10%" : "+0%";
+  document.getElementById("stat-p-rarity").textContent =
+    pLevel >= 1 ? "+1" : "+0";
+  document.getElementById("stat-p-progress").textContent =
+    pLevel >= 2 ? "+15%" : "+0%";
+
+  // Estrelas
+  const starsContainer = document.getElementById("prestige-stars-tab");
+  starsContainer.innerHTML = Array(2)
+    .fill(0)
+    .map(
+      (_, i) =>
+        `<span class="material-symbols-outlined text-[14px] ${
+          i < pLevel ? "text-primary" : "text-gray-800"
+        }" style="font-variation-settings: 'FILL' 1">star</span>`
+    )
+    .join("");
+
+  // Lista de Cards de Desbloqueio
+  const list = document.getElementById("prestige-unlocks-list");
+  let html = "";
+
+  if (pLevel >= 1) {
+    html += `
+      <div class="flex items-center gap-3 bg-primary/5 p-3 rounded-xl border border-primary/20 animate-slide-in">
+        <div class="text-lg bg-primary/10 w-8 h-8 flex items-center justify-center rounded-lg">✨</div>
+        <div class="flex flex-col">
+          <span class="text-[9px] font-black text-primary uppercase">Efeito Desbloqueado</span>
+          <span class="text-[10px] font-bold text-white uppercase italic">Peixe do Vazio Liberado</span>
+        </div>
+      </div>`;
+  }
+  if (pLevel >= 2) {
+    html += `
+      <div class="flex items-center gap-3 bg-purple-500/5 p-3 rounded-xl border border-purple-500/20 animate-slide-in">
+        <div class="text-lg bg-purple-500/10 w-8 h-8 flex items-center justify-center rounded-lg">🌌</div>
+        <div class="flex flex-col">
+          <span class="text-[9px] font-black text-purple-400 uppercase">Domínio Ativo</span>
+          <span class="text-[10px] font-bold text-white uppercase italic">Área: Vazio Místico</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 bg-indigo-500/5 p-3 rounded-xl border border-indigo-500/20 animate-slide-in">
+        <div class="text-lg bg-indigo-500/10 w-8 h-8 flex items-center justify-center rounded-lg">🐙</div>
+        <div class="flex flex-col">
+          <span class="text-[9px] font-black text-indigo-400 uppercase">Passiva Divina</span>
+          <span class="text-[10px] font-bold text-white uppercase italic">Peixes 4% mais lentos</span>
+        </div>
+      </div>`;
+  }
+
+  list.innerHTML =
+    html ||
+    `<div class="text-center py-6 border-2 border-dashed border-white/5 rounded-2xl"><p class="text-[9px] text-gray-600 font-black uppercase tracking-widest">Nenhuma Ascensão Detectada</p></div>`;
+}
 function renderAlbumInventory() {
   const container = document.getElementById("album-list-container");
   if (!container) return;
@@ -2069,7 +2137,6 @@ function updatePrestigeUI() {
   const btn = document.getElementById("btn-prestige-action");
   const rewardPreview = document.getElementById("prestige-reward-preview");
 
-  // Texto descritivo do que o jogador vai ganhar no PRÓXIMO nível
   const nextLevel = gameState.prestigeLevel + 1;
   let rewardHTML = "";
 
@@ -2096,7 +2163,6 @@ function updatePrestigeUI() {
 
   if (rewardPreview) rewardPreview.innerHTML = rewardHTML;
 
-  // Render requisitos
   container.innerHTML = `
     <div class="flex justify-between text-[10px]"><span>Melhorias no Máximo:</span><span class="${
       status.reqs.upgrades ? "text-green-400" : "text-red-400"
@@ -2105,7 +2171,17 @@ function updatePrestigeUI() {
       status.reqs.legendaries ? "text-green-400" : "text-red-400"
     }">${status.currentLegendaries}/${status.neededLegendaries}</span></div>`;
 
-  btn.disabled = !status.eligible || status.maxed;
+  // CORREÇÃO: Removemos a classe 'disabled' e o atributo 'disabled' conforme a elegibilidade
+  if (status.eligible && !status.maxed) {
+    btn.disabled = false;
+    btn.classList.remove("disabled", "opacity-50", "cursor-not-allowed");
+    btn.classList.add("pulse"); // Adiciona um brilho opcional para destacar
+  } else {
+    btn.disabled = true;
+    btn.classList.add("disabled");
+    btn.classList.remove("pulse");
+  }
+
   btn.textContent = status.maxed
     ? "ÁPICE ATINGIDO"
     : status.eligible
