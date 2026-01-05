@@ -1,4 +1,4 @@
-// version 0.1.50
+const CURRENT_VERSION = "0.1.5";
 
 // --- CONFIGURAÇÕES DE PERFORMANCE ---
 const isMobile =
@@ -459,6 +459,8 @@ let gameState = {
   prestigeLevel: 0,
   prestigePoints: 0,
   activeEvents: { positive: null, negative: null, expires: 0 },
+  lastVersionSeen: "0.0.0",
+  antilag: false,
 };
 
 const BALANCE = {
@@ -469,6 +471,58 @@ const BALANCE = {
   bonusValues: { time: 10, xp: 20, sell: 15, rare: 8 },
   eventInterval: 2.5 * 60 * 1000, // 2.5 minutos
 };
+
+function checkGameVersion() {
+  const savedVersion = gameState.lastVersionSeen;
+
+  const versionDisplay = document.getElementById("welcome-version-display");
+  if (versionDisplay) versionDisplay.textContent = `v${CURRENT_VERSION}`;
+
+  if (savedVersion !== CURRENT_VERSION) {
+    console.log(`Nova versão detectada: ${CURRENT_VERSION}`);
+    document
+      .getElementById("version-welcome-screen")
+      .classList.remove("hidden");
+  }
+}
+
+function toggleAntilag(forceValue = null) {
+  gameState.antilag = forceValue !== null ? forceValue : !gameState.antilag;
+
+  const btn = document.getElementById("toggle-antilag");
+  const dot = btn?.querySelector(".dot");
+
+  if (gameState.antilag) {
+    document.body.classList.add("antilag-enabled");
+    btn?.classList.add("bg-primary");
+    if (dot) dot.style.transform = "translateX(20px)";
+
+    // Desativa áudio
+    audioContext.musicMuted = true;
+    audioContext.soundsMuted = true;
+    stopMenuMusic();
+    updateAudioButtons();
+    showToast("Modo Antilag Ativado", "info");
+  } else {
+    // RESTAURAÇÃO
+    document.body.classList.remove("antilag-enabled");
+    btn?.classList.remove("bg-primary");
+    if (dot) dot.style.transform = "translateX(0px)";
+
+    // Reativa áudio
+    audioContext.musicMuted = false;
+    audioContext.soundsMuted = false;
+    updateAudioButtons();
+
+    // Se estiver no menu ou em fase ociosa, volta a música
+    if (gameState.phase === "idle") {
+      playMenuMusic();
+    }
+
+    showToast("Modo Antilag Desativado", "info");
+  }
+  saveGame();
+}
 
 // --- FUNÇÕES DE EVENTOS (MARÉS) ---
 
@@ -564,6 +618,7 @@ function loadGame() {
 }
 
 function saveGame() {
+  gameState.lastVersionSeen = CURRENT_VERSION;
   localStorage.setItem("fishing-master-save", JSON.stringify(gameState));
   updateMenuUI();
 }
@@ -572,20 +627,17 @@ const elements = {
   screens: {
     menu: document.getElementById("menu-screen"),
     game: document.getElementById("game-screen"),
-    tutorial: document.getElementById("tutorial-screen"),
     settings: document.getElementById("settings-screen"),
     map: document.getElementById("map-screen"),
   },
   menu: {
     btnStart: document.getElementById("btn-start-game"),
     btnSettings: document.getElementById("btn-settings-menu"),
-    btnTutorial: document.getElementById("btn-tutorial-menu"),
     levelDisplay: document.getElementById("menu-level-display"),
     moneyDisplay: document.getElementById("menu-money-display"),
   },
   nav: {
     btnReturnMenu: document.getElementById("btn-return-menu"),
-    btnBackTutorial: document.getElementById("btn-back-tutorial"),
     btnBackSettings: document.getElementById("btn-back-settings"),
     btnResetSave: document.getElementById("btn-reset-save"),
     btnOpenMap: document.getElementById("btn-open-map"),
@@ -1636,16 +1688,10 @@ elements.menu.btnStart.addEventListener("click", () => {
 elements.menu.btnSettings.addEventListener("click", () =>
   showScreen("settings")
 );
-elements.menu.btnTutorial.addEventListener("click", () =>
-  showScreen("tutorial")
-);
 elements.nav.btnReturnMenu.addEventListener("click", () => {
   showScreen("menu");
   updateMenuUI();
 });
-elements.nav.btnBackTutorial.addEventListener("click", () =>
-  showScreen("menu")
-);
 elements.nav.btnBackSettings.addEventListener("click", () =>
   showScreen("menu")
 );
@@ -2313,8 +2359,33 @@ document
     setTimeout(() => eventModal.classList.add("pointer-events-none"), 300);
   });
 
+document.getElementById("btn-close-version").addEventListener("click", () => {
+  saveGame();
+  document.getElementById("version-welcome-screen").classList.add("hidden");
+  playSound("click");
+});
+
+document.getElementById("btn-donate").addEventListener("click", () => {
+  window.open(
+    "https://nubank.com.br/cobrar/3upen/672bafe3-8951-4aae-8e53-d86628e67a1a",
+    "_blank"
+  ); // Substitua pelo seu link real
+});
+
+document.getElementById("toggle-antilag")?.addEventListener("click", () => {
+  toggleAntilag();
+});
+
+document
+  .getElementById("btn-settings-mobile")
+  ?.addEventListener("click", () => {
+    playSound("click");
+    showScreen("settings");
+  });
+
 // Inicialização
 loadGame();
 updateMenuUI();
+checkGameVersion();
 // Loop de verificação de marés a cada 30 segundos
 setInterval(updateUI, 30000);

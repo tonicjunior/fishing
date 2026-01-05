@@ -132,8 +132,56 @@
     </div>
 
     <div
+      id="version-welcome-screen"
+      class="hidden fixed inset-0 z-[10000] flex items-center justify-center bg-background-dark/95 backdrop-blur-md p-6"
+    >
+      <div
+        class="bg-surface-dark border border-primary/30 p-8 rounded-3xl max-w-md w-full shadow-2xl text-center"
+      >
+        <div
+          class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6"
+        >
+          <span class="material-symbols-outlined text-primary text-4xl"
+            >new_releases</span
+          >
+        </div>
+        <h2 class="text-2xl font-black text-white uppercase mb-2">
+          Novidades da <span id="welcome-version-display">v0.0.0</span>
+        </h2>
+        <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+          Otimizamos o motor de pesca para dispositivos mobile. <br />
+          <span class="text-primary font-bold"
+            >Novo Sistema Antilag disponível!</span
+          >
+        </p>
+
+        <div
+          class="bg-black/30 p-4 rounded-2xl mb-6 text-left border border-white/5 md:hidden"
+        >
+          <div class="flex items-center gap-3 mb-2">
+            <span class="material-symbols-outlined text-yellow-500">bolt</span>
+            <span class="text-xs font-black uppercase text-white"
+              >Dica Antilag</span
+            >
+          </div>
+          <p class="text-[11px] text-gray-400">
+            Ative o modo Antilag no menu se sentir lentidão. Isso desativa
+            músicas e animações de fundo para maior fluidez.
+          </p>
+        </div>
+
+        <button
+          id="btn-close-version"
+          class="w-full py-4 bg-primary text-white font-black uppercase rounded-2xl shadow-lg active:scale-95 transition-all"
+        >
+          Entendi, vamos pescar!
+        </button>
+      </div>
+    </div>
+
+    <div
       id="menu-screen"
-      class="screen relative flex h-screen w-full flex-col overflow-hidden bg-background-dark"
+      class="screen relative flex h-screen w-full flex-col bg-background-dark"
     >
       <div class="absolute inset-0 z-0">
         <img
@@ -151,7 +199,15 @@
         class="relative z-10 flex h-full flex-col justify-between safe-area-inset"
       >
         <div class="flex w-full justify-between items-start p-4 pt-14 px-6">
-          <div class="w-20"></div>
+          <button
+            id="btn-settings-mobile"
+            class="md:hidden flex h-10 w-10 items-center justify-center rounded-xl bg-surface-dark/90 backdrop-blur-md border border-white/10 text-white active:scale-95 transition-transform"
+          >
+            <span class="material-symbols-outlined">settings</span>
+          </button>
+
+          <div class="hidden md:block w-10"></div>
+
           <div
             class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-surface-dark/90 backdrop-blur-md border border-white/10 pl-3 pr-4 shadow-lg ring-1 ring-black/20"
           >
@@ -206,7 +262,7 @@
 
             <button
               id="btn-settings-menu"
-              class="group w-full rounded-xl bg-surface-dark hover:bg-[#25323b] h-14 px-5 flex items-center justify-between shadow-[0_4px_0_0_#111c21] border border-white/5 active:shadow-none active:translate-y-[4px] active:mb-[4px] transition-all duration-100 ease-out"
+              class="hidden md:flex group w-full rounded-xl bg-surface-dark hover:bg-[#25323b] h-14 px-5 items-center justify-between shadow-[0_4px_0_0_#111c21] border border-white/5 active:shadow-none active:translate-y-[4px] active:mb-[4px] transition-all duration-100 ease-out"
             >
               <div class="flex items-center">
                 <span
@@ -220,21 +276,6 @@
               </div>
             </button>
 
-            <button
-              id="btn-tutorial-menu"
-              class="group w-full rounded-xl bg-surface-dark hover:bg-[#25323b] h-14 px-5 flex items-center justify-between shadow-[0_4px_0_0_#111c21] border border-white/5 active:shadow-none active:translate-y-[4px] active:mb-[4px] transition-all duration-100 ease-out"
-            >
-              <div class="flex items-center">
-                <span
-                  class="material-symbols-outlined mr-3 text-gray-400 group-hover:text-primary transition-colors text-2xl"
-                  >menu_book</span
-                >
-                <span
-                  class="text-gray-200 font-bold uppercase tracking-wide group-hover:text-white transition-colors"
-                  >Tutorial</span
-                >
-              </div>
-            </button>
             <button
               id="btn-multi-menu"
               class="disabled group w-full rounded-xl bg-surface-dark hover:bg-[#25323b] h-14 px-5 flex items-center justify-between shadow-[0_4px_0_0_#111c21] border border-white/5 active:shadow-none"
@@ -250,6 +291,47 @@
                 >
               </div>
             </button>
+
+            <button
+              id="btn-donate"
+              class="group w-full rounded-xl bg-[#820ad1]/20 hover:bg-[#820ad1]/40 h-14 px-5 flex items-center justify-between border border-[#820ad1]/30 transition-all active:scale-95"
+            >
+              <div class="flex items-center">
+                <span
+                  class="material-symbols-outlined mr-3 text-[#820ad1] text-2xl"
+                  >volunteer_activism</span
+                >
+                <span class="text-gray-200 font-bold uppercase tracking-wide"
+                  >Apoiar Projeto</span
+                >
+              </div>
+              <span class="material-symbols-outlined text-[#820ad1] text-sm"
+                >open_in_new</span
+              >
+            </button>
+
+            <div class="mt-4 flex flex-col items-center gap-2 mb-2">
+              <div
+                class="md:hidden flex items-center gap-3 bg-surface-dark/50 px-4 py-2 rounded-full border border-white/5"
+              >
+                <span class="text-[10px] font-black uppercase text-gray-500"
+                  >Modo Antilag</span
+                >
+                <button
+                  id="toggle-antilag"
+                  class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"
+                >
+                  <div
+                    class="dot absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition-transform"
+                  ></div>
+                </button>
+              </div>
+              <p
+                class="text-[10px] font-black text-gray-600 uppercase tracking-widest"
+              >
+                Versão 0.1.50
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -691,19 +773,6 @@
                 </div>
 
                 <div class="tab-content" id="tab-boat">
-                  <div class="upgrade-item" data-upgrade="capacity">
-                    <div class="upgrade-icon">📦</div>
-                    <div class="upgrade-info">
-                      <p class="upgrade-name">Capacidade</p>
-                      <p class="upgrade-desc">
-                        Aumenta o espaço do inventário do barco.
-                      </p>
-                      <div class="upgrade-dots" id="capacity-dots"></div>
-                    </div>
-                    <button class="btn btn-upgrade" id="btn-capacity">
-                      $80
-                    </button>
-                  </div>
                   <div class="upgrade-item" data-upgrade="speed">
                     <div class="upgrade-icon">💨</div>
                     <div class="upgrade-info">
@@ -730,19 +799,17 @@
 
                 <div class="tab-content" id="tab-bonuses">
                   <div class="bonus-grid">
-                    <button class="bonus-btn" id="bonus-time">
+                    <button class="bonus-btn" id="bonus-fish-speed">
+                      <div><span class="bonus-icon">👁️</span></div>
                       <div>
-                        <span class="bonus-icon">⚡</span>
-                      </div>
-                      <div>
-                        <p class="bonus-name">Expedição Ágil</p>
-
+                        <p class="bonus-name">Foco do Pescador</p>
                         <p class="bonus-desc">
-                          Reduz tempo de viagem e busca em 10%.
+                          Peixes movem-se 3% mais devagar.
                         </p>
-                        <p class="bonus-current" id="time-bonus">+0%</p>
+                        <p class="bonus-current" id="fish-speed-bonus">-0%</p>
                       </div>
                     </button>
+
                     <button class="bonus-btn" id="bonus-xp">
                       <div>
                         <span class="bonus-icon">📚</span>
@@ -879,44 +946,6 @@
             >
           </button>
         </nav>
-      </div>
-    </div>
-    <div
-      id="tutorial-screen"
-      class="hidden-screen relative w-full min-h-screen bg-background-dark p-6 overflow-y-auto"
-    >
-      <div class="max-w-2xl mx-auto space-y-6 pb-20">
-        <div
-          class="flex items-center justify-between mb-8 sticky top-0 bg-background-dark/95 backdrop-blur-sm py-4 z-20 border-b border-white/10"
-        >
-          <h2 class="text-3xl font-black uppercase text-primary">Como Jogar</h2>
-          <button
-            id="btn-back-tutorial"
-            class="bg-surface-dark p-2 rounded-full hover:bg-surface-darker border border-white/10"
-          >
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        <div class="space-y-4">
-          <div
-            class="bg-surface-dark p-6 rounded-2xl border border-white/5 shadow-lg"
-          >
-            <h3 class="font-bold text-white mb-2">1. Pesca</h3>
-            <p class="text-gray-400">
-              Use o mapa para viajar. Clique em pescar. Quando o peixe morder,
-              vença o minigame mantendo o peixe na barra verde.
-            </p>
-          </div>
-          <div
-            class="bg-surface-dark p-6 rounded-2xl border border-white/5 shadow-lg"
-          >
-            <h3 class="font-bold text-white mb-2">2. Evolução</h3>
-            <p class="text-gray-400">
-              Venda peixes para ganhar dinheiro e melhore seu equipamento na
-              Loja. Suba de nível para ganhar bônus.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -1188,12 +1217,10 @@
           <p class="text-[10px] font-bold text-primary uppercase mb-2">
             Consequências:
           </p>
-          <ul class="text-[10px] text-gray-300 space-y-1">
-            <li>• Dinheiro e Nível serão resetados</li>
-            <li>• Álbum de Peixes será limpo</li>
-            <li>• Vara e Barco voltarão ao nível 1</li>
-            <li class="text-green-400">• Bônus permanente desbloqueado</li>
-          </ul>
+          <ul
+            class="text-[10px] text-gray-300 space-y-1"
+            id="prestige-benefits-list"
+          ></ul>
         </div>
 
         <div class="flex gap-2">

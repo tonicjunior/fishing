@@ -1523,6 +1523,7 @@ kbd {
   display: block;
   width: 100%;
   min-height: 100vh;
+  overflow: auto;
 }
 .hidden-screen {
   display: none !important;
@@ -2262,10 +2263,34 @@ body {
   }
 }
 
-
 #catch-progress-fill {
-    height: 100% !important; /* Altura fixa */
-    transform-origin: bottom; /* Base da escala */
-    will-change: transform;   /* Pré-renderização na GPU */
-    transition: none !important; /* Remove delay de CSS para resposta imediata */
+  height: 100% !important; /* Altura fixa */
+  transform-origin: bottom; /* Base da escala */
+  will-change: transform; /* Pré-renderização na GPU */
+  transition: none !important; /* Remove delay de CSS para resposta imediata */
+}
+
+#toggle-antilag.active {
+  background-color: var(--primary);
+}
+#toggle-antilag.active .dot {
+  transform: translateX(20px);
+}
+
+/* Classe aplicada ao body quando Antilag está ON */
+body.antilag-enabled .ocean-view .sun,
+body.antilag-enabled .ocean-view .cloud,
+body.antilag-enabled .ocean-view .bubble,
+body.antilag-enabled .ocean-view .fish-swimming,
+body.antilag-enabled .ocean-view .seaweed {
+  animation: none !important;
+  display: none !important;
+}
+
+body.antilag-enabled .ocean-view .wave {
+  animation: none !important;
+}
+
+body.antilag-enabled .bg-gradient-to-b {
+  backdrop-filter: none !important; /* Remove blur para performance */
 }
