@@ -182,11 +182,11 @@ let activeEventAtStart = null;
 audioContext.sounds.battle.loop = true;
 
 function injectPrestigeContent() {
+  // Bônus Prestígio 1: Piranha do Vazio
   if (gameState.prestigeLevel >= 1) {
     if (!FISH_DATA.find((f) => f.id === PRESTIGE_CONTENT.fish_level_1.id)) {
       FISH_DATA.push(PRESTIGE_CONTENT.fish_level_1);
     }
-
     const abyssArea = AREAS.find((a) => a.id === "abyss");
     if (
       abyssArea &&
@@ -196,6 +196,7 @@ function injectPrestigeContent() {
     }
   }
 
+  // Bônus Prestígio 2: Vazio Místico e Criaturas Cósmicas
   if (gameState.prestigeLevel >= 2) {
     if (!AREAS.find((a) => a.id === PRESTIGE_CONTENT.map_level_2.id)) {
       AREAS.push(PRESTIGE_CONTENT.map_level_2);
@@ -834,6 +835,13 @@ function updateUI() {
   const name =
     gameState.playerName || localStorage.getItem("player-name") || "Pescador";
   document.getElementById("player-name-display").textContent = name;
+
+  const levelBadge = document.getElementById("player-level");
+  levelBadge.classList.remove("level-prestige-1", "level-prestige-2");
+  if (gameState.prestigeLevel === 1)
+    levelBadge.classList.add("level-prestige-1");
+  if (gameState.prestigeLevel >= 2)
+    levelBadge.classList.add("level-prestige-2");
   updatePrestigeUI();
 }
 
@@ -944,8 +952,9 @@ function showToast(message, type = "info") {
 
 function getTravelTime(area) {
   const base = area.travelTime;
+  const prestigeMod = gameState.prestigeLevel >= 1 ? 0.9 : 1; // 10% mais rápido
   const speedReduction = (gameState.boat.speed - 1) * 0.1;
-  return Math.max(1, base * (1 - speedReduction));
+  return Math.max(1, base * (1 - speedReduction) * prestigeMod);
 }
 
 function getSearchTime() {
@@ -1400,6 +1409,8 @@ function updateFishingSoundOptimized() {
 function startMinigame() {
   gameState.phase = "fishing";
   document.body.classList.add("minigame-focus");
+
+  // --- RESET DE VARIÁVEIS LÓGICAS ---
   zonePosition = 50;
   fishPosition = 50;
   fishVelocity = 0;
@@ -1410,103 +1421,101 @@ function startMinigame() {
   minigameActive = true;
   minigameStartTime = performance.now();
 
-  // --- MELHORIA A: USANDO SNAPSHOT (activeEventAtStart) EM VEZ DO GLOBAL ---
-  const stabilityMod = activeEventAtStart?.effect?.stability || 1;
-  const prestigeStability = gameState.prestigeLevel >= 1 ? 1.5 : 0;
+  // --- CÁLCULO DE BÔNUS DE PRESTÍGIO ---
+
+  // Prestígio 1: +1 de Estabilidade (+1.5 no multiplicador visual)
+  const p1StabilityBonus = gameState.prestigeLevel >= 1 ? 1.5 : 0;
+
+  // Prestígio 2: Barra de progresso 15% mais rápida
+  const p2ProgressMultiplier = gameState.prestigeLevel >= 2 ? 1.15 : 1;
+
+  // Prestígio 2: Peixes 4% mais lentos
+  const p2FishSlowdown = gameState.prestigeLevel >= 2 ? 0.96 : 1;
+
+  // --- APLICAÇÃO VISUAL DA ZONA DE CAPTURA ---
+  const eventZoneMod = activeEventAtStart?.effect?.zoneSize || 1;
   const finalHeightPct = Math.min(
     40,
-    (20 + (gameState.rod.stability - 1 + prestigeStability) * 1.5) *
-      (activeEventAtStart?.effect?.zoneSize || 1)
+    (20 + (gameState.rod.stability - 1 + p1StabilityBonus) * 1.5) * eventZoneMod
   );
   elements.catchZone.style.height = `${finalHeightPct}%`;
 
   let lastTime = performance.now();
-
   barHeight = elements.fishingBar.clientHeight;
   zoneHeight = elements.catchZone.clientHeight;
 
   function gameLoop(currentTime) {
     if (!minigameActive) return;
 
-    // 1. TRAVA DE FPS (Apenas processa se passou o tempo do TARGET_FPS)
     const elapsedSinceLastFrame = currentTime - lastFrameTime;
     if (elapsedSinceLastFrame < FRAME_TIME) {
       minigameLoop = requestAnimationFrame(gameLoop);
       return;
     }
 
-    // 2. CÁLCULO DE DELTA TIME (Consistência de movimento)
     const deltaTime = Math.min((currentTime - lastTime) / 1000, 0.1);
-
-    // Atualiza os timestamps sincronizados
     lastFrameTime = currentTime - (elapsedSinceLastFrame % FRAME_TIME);
     lastTime = currentTime;
 
-    // 3. OTIMIZAÇÕES DE ÁUDIO E LÓGICA
     updateFishingSoundOptimized();
 
-    let fishDiffBase = currentFish.difficulty;
+    // Lógica de Movimento do Peixe
     let difficulty = Math.max(
       1,
-      fishDiffBase * 0.62 - gameState.rod.stability / 4
+      currentFish.difficulty * 0.62 - gameState.rod.stability / 4
     );
-
-    // Lógica de decisão do peixe
     fishDecisionTimer += deltaTime;
+
     if (fishDecisionTimer > 0.15) {
       fishDecisionTimer = 0;
-
-      const fishSpeedMod = activeEventAtStart?.effect?.fishSpeed || 1;
-
-      // NOVO: Cálculo variável baseado no BALANCE.fishSlowValue
-      const totalReduction =
-        (gameState.bonuses.fishSlow * BALANCE.fishSlowValue) / 100;
-      const slowMultiplier = 1 - totalReduction;
+      const eventFishSpeed = activeEventAtStart?.effect?.fishSpeed || 1;
+      const bonusSlowdown =
+        1 - (gameState.bonuses.fishSlow * BALANCE.fishSlowValue) / 100;
 
       if (Math.random() < 0.25 + difficulty * 0.05) {
         fishDirection = Math.random() > 0.5 ? 1 : -1;
+        // Aplicação do p2FishSlowdown (4% mais lento)
         fishVelocity =
           (Math.random() * 120 + 60) *
           (difficulty / 3) *
-          fishSpeedMod *
-          Math.max(0.1, slowMultiplier);
+          eventFishSpeed *
+          bonusSlowdown *
+          p2FishSlowdown;
       }
     }
 
-    // 4. MOVIMENTAÇÃO COM ACELERAÇÃO DE HARDWARE (GPU)
+    // Atualização de Posições (GPU Optimized)
     fishPosition += fishVelocity * fishDirection * deltaTime;
     fishPosition = Math.max(5, Math.min(95, fishPosition));
-    zonePosition += (isHolding ? -185 : 75) * deltaTime;
+    zonePosition += (isHolding ? -175 : 95) * deltaTime;
     zonePosition = Math.max(0, Math.min(100, zonePosition));
 
     const zoneYPx = (zonePosition / 100) * (barHeight - zoneHeight);
     const fishYPx = (fishPosition / 100) * barHeight;
 
-    // Usando translate3d para evitar Reflow no Mobile
     elements.catchZone.style.transform = `translate3d(0, ${zoneYPx}px, 0)`;
     elements.fishMarker.style.transform = `translate3d(-50%, ${fishYPx}px, 0) translateY(-50%)`;
 
-    if (fishMarkerInner)
-      fishMarkerInner.style.transform =
-        fishDirection > 0 ? "scaleX(1)" : "scaleX(-1)";
-
-    // 5. PROGRESSO COM SCALE (GPU) EM VEZ DE HEIGHT
+    // Cálculo de Progresso
     const inZone =
       fishPosition >= (zoneYPx / barHeight) * 100 &&
       fishPosition <= ((zoneYPx + zoneHeight) / barHeight) * 100;
 
-    const progressSpeed = activeEventAtStart?.effect?.progressSpeed || 1;
+    const eventProgressSpeed = activeEventAtStart?.effect?.progressSpeed || 1;
     const failPenalty = activeEventAtStart?.effect?.failPenalty || 1;
 
+    // Aplicação do p2ProgressMultiplier (15% mais rápido no sucesso)
     catchProgress = Math.max(
       0,
       Math.min(
         100,
-        catchProgress + (inZone ? 0.45 * progressSpeed : -0.3 * failPenalty)
+        catchProgress +
+          (inZone
+            ? 0.45 * eventProgressSpeed * p2ProgressMultiplier
+            : -0.3 * failPenalty)
       )
     );
 
-    // OTIMIZAÇÃO: Alterar height no mobile é lento, scaleY é instantâneo
     elements.catchProgressFill.style.transform = `scaleY(${
       catchProgress / 100
     })`;
@@ -2058,29 +2067,50 @@ function updatePrestigeUI() {
   const status = checkPrestigeEligibility();
   const container = document.getElementById("prestige-requirements");
   const btn = document.getElementById("btn-prestige-action");
-  if (status.maxed) {
-    container.innerHTML = `<div class="bg-primary/10 p-3 rounded-xl border border-primary/30 text-center"><span class="material-symbols-outlined text-primary mb-1">construction</span><p class="text-[10px] font-bold text-white uppercase">Conteúdo vindo por aí!</p></div>`;
-    btn.disabled = true;
-    btn.classList.add("disabled");
-    btn.textContent = "ÁPICE ATINGIDO";
-    return;
-  }
-  container.innerHTML = `<div class="flex justify-between text-[10px]"><span>Melhorias no Máximo:</span><span class="${
-    status.reqs.upgrades ? "text-green-400" : "text-red-400"
-  }">${
-    status.reqs.upgrades ? "✓" : "✗"
-  }</span></div><div class="flex justify-between text-[10px]"><span>Lendários Diferentes:</span><span class="${
-    status.reqs.legendaries ? "text-green-400" : "text-red-400"
-  }">${status.currentLegendaries}/${status.neededLegendaries}</span></div>`;
-  if (status.eligible) {
-    btn.disabled = false;
-    btn.classList.remove("disabled");
-    btn.textContent = `RENASCER PARA NÍVEL ${gameState.prestigeLevel + 1}`;
+  const rewardPreview = document.getElementById("prestige-reward-preview");
+
+  // Texto descritivo do que o jogador vai ganhar no PRÓXIMO nível
+  const nextLevel = gameState.prestigeLevel + 1;
+  let rewardHTML = "";
+
+  if (nextLevel === 1) {
+    rewardHTML = `
+      <div class="bg-primary/10 p-3 rounded-xl border border-primary/20 space-y-1">
+        <p class="text-primary font-black text-[10px] uppercase">Vantagens Nível 1:</p>
+        <p class="text-white text-[10px]">🔓 Desbloqueia Peixe do Vazio</p>
+        <p class="text-white text-[10px]">🎯 +1 Estabilidade (Barra maior)</p>
+        <p class="text-white text-[10px]">🚤 +10% Velocidade de Viagem/Busca</p>
+      </div>`;
+  } else if (nextLevel === 2) {
+    rewardHTML = `
+      <div class="bg-purple-500/10 p-3 rounded-xl border border-purple-500/20 space-y-1">
+        <p class="text-purple-400 font-black text-[10px] uppercase">Vantagens Nível 2:</p>
+        <p class="text-white text-[10px]">🌌 Área: Vazio Místico</p>
+        <p class="text-white text-[10px]">🐙 Criaturas Cósmicas</p>
+        <p class="text-white text-[10px]">⚡ Progresso 15% mais rápido</p>
+        <p class="text-white text-[10px]">❄️ Peixes 4% mais lentos</p>
+      </div>`;
   } else {
-    btn.disabled = true;
-    btn.classList.add("disabled");
-    btn.textContent = "Requisitos não atendidos";
+    rewardHTML = `<p class="text-gray-500 text-[10px] text-center">Você atingiu o ápice!</p>`;
   }
+
+  if (rewardPreview) rewardPreview.innerHTML = rewardHTML;
+
+  // Render requisitos
+  container.innerHTML = `
+    <div class="flex justify-between text-[10px]"><span>Melhorias no Máximo:</span><span class="${
+      status.reqs.upgrades ? "text-green-400" : "text-red-400"
+    }">${status.reqs.upgrades ? "✓" : "✗"}</span></div>
+    <div class="flex justify-between text-[10px]"><span>Lendários:</span><span class="${
+      status.reqs.legendaries ? "text-green-400" : "text-red-400"
+    }">${status.currentLegendaries}/${status.neededLegendaries}</span></div>`;
+
+  btn.disabled = !status.eligible || status.maxed;
+  btn.textContent = status.maxed
+    ? "ÁPICE ATINGIDO"
+    : status.eligible
+    ? `RENASCER (NVL ${nextLevel})`
+    : "REQUISITOS PENDENTES";
 }
 
 function createPrestigeParticles() {
