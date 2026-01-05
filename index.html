@@ -773,6 +773,19 @@
                 </div>
 
                 <div class="tab-content" id="tab-boat">
+                  <div class="upgrade-item" data-upgrade="capacity">
+                    <div class="upgrade-icon">📦</div>
+                    <div class="upgrade-info">
+                      <p class="upgrade-name">Capacidade</p>
+                      <p class="upgrade-desc">
+                        Aumenta o espaço do inventário do barco.
+                      </p>
+                      <div class="upgrade-dots" id="capacity-dots"></div>
+                    </div>
+                    <button class="btn btn-upgrade" id="btn-capacity">
+                      $80
+                    </button>
+                  </div>
                   <div class="upgrade-item" data-upgrade="speed">
                     <div class="upgrade-icon">💨</div>
                     <div class="upgrade-info">
@@ -799,17 +812,19 @@
 
                 <div class="tab-content" id="tab-bonuses">
                   <div class="bonus-grid">
-                    <button class="bonus-btn" id="bonus-fish-speed">
-                      <div><span class="bonus-icon">👁️</span></div>
+                    <button class="bonus-btn" id="bonus-time">
                       <div>
-                        <p class="bonus-name">Foco do Pescador</p>
+                        <span class="bonus-icon">⚡</span>
+                      </div>
+                      <div>
+                        <p class="bonus-name">Expedição Ágil</p>
+
                         <p class="bonus-desc">
-                          Peixes movem-se 3% mais devagar.
+                          Reduz tempo de viagem e busca em 10%.
                         </p>
-                        <p class="bonus-current" id="fish-speed-bonus">-0%</p>
+                        <p class="bonus-current" id="time-bonus">+0%</p>
                       </div>
                     </button>
-
                     <button class="bonus-btn" id="bonus-xp">
                       <div>
                         <span class="bonus-icon">📚</span>
@@ -1217,10 +1232,12 @@
           <p class="text-[10px] font-bold text-primary uppercase mb-2">
             Consequências:
           </p>
-          <ul
-            class="text-[10px] text-gray-300 space-y-1"
-            id="prestige-benefits-list"
-          ></ul>
+          <ul class="text-[10px] text-gray-300 space-y-1">
+            <li>• Dinheiro e Nível serão resetados</li>
+            <li>• Álbum de Peixes será limpo</li>
+            <li>• Vara e Barco voltarão ao nível 1</li>
+            <li class="text-green-400">• Bônus permanente desbloqueado</li>
+          </ul>
         </div>
 
         <div class="flex gap-2">
