@@ -449,7 +449,7 @@ let gameState = {
   totalEarned: 0,
   rod: { depth: 1, stability: 1, bait: 1 },
   boat: { capacity: 10, speed: 1, sonar: 1 },
-  bonuses: { time: 0, xp: 0, sell: 0, rare: 0 },
+  bonuses: { fishSlow: 0, xp: 0, sell: 0, rare: 0 },
   inventory: [],
   caughtSpecies: [],
   caughtCounts: {},
@@ -468,7 +468,8 @@ const BALANCE = {
   baseSellTime: 15,
   xpMultiplier: 2.2,
   firstCatchXP: 100,
-  bonusValues: { time: 10, xp: 20, sell: 15, rare: 8 },
+  fishSlowValue: 2,
+  bonusValues: { fishSlow: 1, xp: 20, sell: 15, rare: 8 },
   eventInterval: 2.5 * 60 * 1000, // 2.5 minutos
 };
 
@@ -704,7 +705,7 @@ const elements = {
   btnSpeed: document.getElementById("btn-speed"),
   btnSonar: document.getElementById("btn-sonar"),
   bonusPoints: document.getElementById("bonus-points"),
-  timeBonus: document.getElementById("time-bonus"),
+  fishSlowBonus: document.getElementById("bonus-fishSpeed"),
   xpBonus: document.getElementById("xp-bonus"),
   sellBonus: document.getElementById("sell-bonus"),
   rareBonus: document.getElementById("rare-bonus"),
@@ -887,8 +888,8 @@ function updateUpgrades() {
   updateDots(elements.speedDots, gameState.boat.speed, 10);
   updateDots(elements.sonarDots, gameState.boat.sonar, 10);
   updateUpgradeButton(elements.btnCapacity, "capacity", capacityLevel, 80);
-  updateUpgradeButton(elements.btnSpeed, "speed", gameState.boat.speed, 70);
-  updateUpgradeButton(elements.btnSonar, "sonar", gameState.boat.sonar, 90);
+  updateUpgradeButton(elements.btnSpeed, "speed", gameState.boat.speed, 85);
+  updateUpgradeButton(elements.btnSonar, "sonar", gameState.boat.sonar, 110);
 }
 
 function updateDots(container, level, max) {
@@ -916,11 +917,17 @@ function updateUpgradeButton(btn, type, level, baseCost) {
 }
 
 function updateBonuses() {
+  const displayPct = gameState.bonuses.fishSlow * BALANCE.fishSlowValue;
+  const fishSlowElement = document.getElementById("fishSlow-bonus");
+  if (fishSlowElement) {
+    fishSlowElement.textContent = `-${displayPct}%`;
+  }
+
   elements.bonusPoints.textContent = gameState.bonusPoints;
-  elements.timeBonus.textContent = `+${gameState.bonuses.time}%`;
   elements.xpBonus.textContent = `+${gameState.bonuses.xp}%`;
   elements.sellBonus.textContent = `+${gameState.bonuses.sell}%`;
   elements.rareBonus.textContent = `+${gameState.bonuses.rare}%`;
+
   document.querySelectorAll(".bonus-btn").forEach((btn) => {
     btn.disabled = gameState.bonusPoints <= 0;
   });
@@ -937,16 +944,14 @@ function showToast(message, type = "info") {
 
 function getTravelTime(area) {
   const base = area.travelTime;
-  const speedReduction = (gameState.boat.speed - 1) * 0.08;
-  const bonusReduction = gameState.bonuses.time / 100;
-  return Math.max(1, base * (1 - speedReduction - bonusReduction));
+  const speedReduction = (gameState.boat.speed - 1) * 0.1;
+  return Math.max(1, base * (1 - speedReduction));
 }
 
 function getSearchTime() {
   const base = gameState.currentArea.searchTime;
-  const sonarReduction = (gameState.boat.sonar - 1) * 0.08;
-  const bonusReduction = gameState.bonuses.time / 100;
-  return Math.max(1, base * (1 - sonarReduction - bonusReduction));
+  const sonarReduction = (gameState.boat.sonar - 1) * 0.1;
+  return Math.max(1, base * (1 - sonarReduction));
 }
 
 function openMap() {
@@ -1450,11 +1455,21 @@ function startMinigame() {
     fishDecisionTimer += deltaTime;
     if (fishDecisionTimer > 0.15) {
       fishDecisionTimer = 0;
+
       const fishSpeedMod = activeEventAtStart?.effect?.fishSpeed || 1;
+
+      // NOVO: Cálculo variável baseado no BALANCE.fishSlowValue
+      const totalReduction =
+        (gameState.bonuses.fishSlow * BALANCE.fishSlowValue) / 100;
+      const slowMultiplier = 1 - totalReduction;
+
       if (Math.random() < 0.25 + difficulty * 0.05) {
         fishDirection = Math.random() > 0.5 ? 1 : -1;
         fishVelocity =
-          (Math.random() * 120 + 60) * (difficulty / 3) * fishSpeedMod;
+          (Math.random() * 120 + 60) *
+          (difficulty / 3) *
+          fishSpeedMod *
+          Math.max(0.1, slowMultiplier);
       }
     }
 
@@ -1750,9 +1765,9 @@ elements.btnSonar.addEventListener("click", () => {
   buyUpgrade("sonar", "boat");
 });
 
-document.getElementById("bonus-time").addEventListener("click", () => {
+document.getElementById("bonus-fishSpeed").addEventListener("click", () => {
   playSound("click");
-  addBonus("time");
+  addBonus("fishSlow");
 });
 document.getElementById("bonus-xp").addEventListener("click", () => {
   playSound("click");
@@ -2104,7 +2119,7 @@ function performPrestige() {
     gameState.totalFish = 0;
     gameState.totalEarned = 0;
     gameState.bonusPoints = 0;
-    gameState.bonuses = { time: 0, xp: 0, sell: 0, rare: 0 };
+    gameState.bonuses = { fishSlow: 0, xp: 0, sell: 0, rare: 0 };
     saveGame();
     injectPrestigeContent();
     location.reload();
