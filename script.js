@@ -5,7 +5,7 @@ const isMobile =
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
   );
-const TARGET_FPS = isMobile ? 70 : 70; 
+const TARGET_FPS = isMobile ? 70 : 70;
 const FRAME_TIME = 1000 / TARGET_FPS;
 
 let lastFrameTime = 0; // Controle de trava de FPS
@@ -1916,6 +1916,13 @@ const btnMusicSetup = document.getElementById("setup-music"),
   btnSoundsSetup = document.getElementById("setup-sounds");
 btnMusicSetup.addEventListener("click", () => {
   audioContext.musicMuted = !audioContext.musicMuted;
+  if (audioContext.musicMuted) {
+    stopMenuMusic();
+    audioContext.sounds.battle.pause();
+  } else {
+    if (gameState.phase === "fishing") audioContext.sounds.battle.play();
+    else playMenuMusic();
+  }
   updateAudioButtons();
 });
 btnSoundsSetup.addEventListener("click", () => {
