@@ -112,14 +112,14 @@ const PRESTIGE_CONTENT = {
   },
   fish_level_2: [
     {
-      id: "abyssal_horror",
+      id: "abyssal",
       name: "Aberração Abissal",
       rarity: "legendary",
       price: 4500,
       difficulty: 11,
       minDepth: 8,
       emoji: "🕳️",
-      image: "assets/monsters/abyssal_horror.gif",
+      image: "assets/fish/abyssal.gif",
     },
     {
       id: "nebula_carp",
@@ -478,9 +478,12 @@ function checkGameVersion() {
   const savedVersion = gameState.lastVersionSeen;
 
   const versionDisplay = document.getElementById("welcome-version-display");
-  if (versionDisplay) versionDisplay.textContent = `v${CURRENT_VERSION}`;
+  const menuVersionDisplay = document.getElementById("menu-version-display");
+  if (versionDisplay) versionDisplay.textContent = `${CURRENT_VERSION}`;
+  if (menuVersionDisplay) menuVersionDisplay.textContent = `${CURRENT_VERSION}`;
 
   if (savedVersion !== CURRENT_VERSION) {
+    localStorage.removeItem("fishing-master-save");
     console.log(`Nova versão detectada: ${CURRENT_VERSION}`);
     document
       .getElementById("version-welcome-screen")
@@ -694,13 +697,11 @@ const elements = {
   depthDots: document.getElementById("depth-dots"),
   stabilityDots: document.getElementById("stability-dots"),
   baitDots: document.getElementById("bait-dots"),
-  capacityDots: document.getElementById("capacity-dots"),
   speedDots: document.getElementById("speed-dots"),
   sonarDots: document.getElementById("sonar-dots"),
   btnDepth: document.getElementById("btn-depth"),
   btnStability: document.getElementById("btn-stability"),
   btnBait: document.getElementById("btn-bait"),
-  btnCapacity: document.getElementById("btn-capacity"),
   btnSpeed: document.getElementById("btn-speed"),
   btnSonar: document.getElementById("btn-sonar"),
   bonusPoints: document.getElementById("bonus-points"),
@@ -771,6 +772,8 @@ function updateUI() {
   const xpForLevel = XP_PER_LEVEL * gameState.level;
   elements.xpText.textContent = `${gameState.xp}/${xpForLevel}`;
   elements.xpFill.style.width = `${(gameState.xp / xpForLevel) * 100}%`;
+
+  gameState.boat.capacity = 5 + gameState.level * 2;
 
   const capacity = gameState.boat.capacity;
   const count = gameState.inventory.length;
@@ -886,11 +889,8 @@ function updateUpgrades() {
   );
   updateUpgradeButton(elements.btnBait, "bait", gameState.rod.bait, 60);
 
-  const capacityLevel = Math.floor((gameState.boat.capacity - 10) / 5) + 1;
-  updateDots(elements.capacityDots, capacityLevel, 10);
   updateDots(elements.speedDots, gameState.boat.speed, 10);
   updateDots(elements.sonarDots, gameState.boat.sonar, 10);
-  updateUpgradeButton(elements.btnCapacity, "capacity", capacityLevel, 80);
   updateUpgradeButton(elements.btnSpeed, "speed", gameState.boat.speed, 85);
   updateUpgradeButton(elements.btnSonar, "sonar", gameState.boat.sonar, 110);
 }
@@ -1491,6 +1491,9 @@ function startMinigame() {
     elements.catchZone.style.transform = `translate3d(0, ${zoneYPx}px, 0)`;
     elements.fishMarker.style.transform = `translate3d(-50%, ${fishYPx}px, 0) translateY(-50%)`;
 
+    if (!gameState.antilag)
+      fishMarkerInner.style.transform = `scaleX(${fishDirection})`;
+
     // Cálculo de Progresso
     const inZone =
       fishPosition >= (zoneYPx / barHeight) * 100 &&
@@ -1685,8 +1688,7 @@ function buyUpgrade(type, category) {
   gameState.money -= cost;
   if (category === "rod") gameState.rod[type]++;
   else {
-    if (type === "capacity") gameState.boat.capacity += 5;
-    else gameState.boat[type]++;
+    gameState.boat[type]++;
   }
   saveGame();
   updateUI();
@@ -1756,10 +1758,7 @@ elements.btnBait.addEventListener("click", () => {
   playSound("click");
   buyUpgrade("bait", "rod");
 });
-elements.btnCapacity.addEventListener("click", () => {
-  playSound("click");
-  buyUpgrade("capacity", "boat");
-});
+
 elements.btnSpeed.addEventListener("click", () => {
   playSound("click");
   buyUpgrade("speed", "boat");
@@ -2214,6 +2213,7 @@ function performPrestige() {
   createPrestigeParticles();
   setTimeout(() => {
     gameState.prestigeLevel = nextLevel;
+    ameState.currentArea = AREAS[0];
     gameState.money = 0;
     gameState.xp = 0;
     gameState.level = 1;

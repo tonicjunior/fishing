@@ -2329,3 +2329,7 @@ body.antilag-enabled .bg-gradient-to-b {
   line-height: 1.4;
   color: #cbd5e1;
 }
+
+#prestige-unlocks-list{
+  padding-bottom: 20%;
+}
