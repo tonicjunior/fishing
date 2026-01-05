@@ -1,4 +1,4 @@
-const CURRENT_VERSION = "0.1.5";
+const CURRENT_VERSION = "0.1.7";
 
 // --- CONFIGURAÇÕES DE PERFORMANCE ---
 const isMobile =
