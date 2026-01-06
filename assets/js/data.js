@@ -1,4 +1,4 @@
-const CURRENT_VERSION = "0.2.56";
+const CURRENT_VERSION = "0.2.62";
 const isMobile =
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
