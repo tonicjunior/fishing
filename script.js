@@ -1672,10 +1672,7 @@ function buyUpgrade(type, category) {
     currentLevel = gameState.rod[type];
     baseCost = { depth: 50, stability: 40, bait: 60 }[type];
   } else {
-    currentLevel =
-      type === "capacity"
-        ? Math.floor((gameState.boat.capacity - 10) / 5) + 1
-        : gameState.boat[type];
+    currentLevel = gameState.boat[type];
     baseCost = { capacity: 80, speed: 70, sonar: 90 }[type];
   }
   if (currentLevel >= 10) return;
