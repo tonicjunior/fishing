@@ -1,4 +1,4 @@
-const CURRENT_VERSION = "0.2.42";
+const CURRENT_VERSION = "0.2.47";
 const isMobile =
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
@@ -499,29 +499,7 @@ const areaFishList = document.getElementById("area-fish-list");
 let activeEventAtStart = null;
 let lastFrameTime = 0;
 let lastTime = 0;
-let gameState = {
-  money: 0,
-  xp: 0,
-  level: 1,
-  bonusPoints: 0,
-  totalFish: 0,
-  totalEarned: 0,
-  rod: { depth: 1, stability: 1, bait: 1 },
-  boat: { repescagem: 1, capacity: 5, speed: 1, sonar: 1 },
-  bonuses: { fishSlow: 0, xp: 0, sell: 0, rare: 0 },
-  inventory: [],
-  caughtSpecies: [],
-  caughtCounts: {},
-  currentArea: AREAS[0],
-  phase: "idle",
-  isSelling: false,
-  prestigeLevel: 0,
-  prestigePoints: 0,
-  activeEvents: { positive: null, negative: null, expires: 0 },
-  lastVersionSeen: "0.0.0",
-  antilag: false,
-  repescagemAttempted: false,
-};
+let gameState = getDefaultGameState();
 
 let selectedMapArea = null;
 let fishDecisionTimer = 0;
@@ -550,3 +528,30 @@ let repescagemTimerInterval = null;
 let repescagemPaused = false;
 let repescagemBlinkInterval = null;
 let lastPointerAngle = 0;
+
+
+function getDefaultGameState() {
+  return {
+    money: 0,
+    xp: 0,
+    level: 1,
+    bonusPoints: 0,
+    totalFish: 0,
+    totalEarned: 0,
+    rod: { depth: 1, stability: 1, bait: 1 },
+    boat: { repescagem: 1, capacity: 5, speed: 1, sonar: 1 },
+    bonuses: { fishSlow: 0, xp: 0, sell: 0, rare: 0 },
+    inventory: [],
+    caughtSpecies: [],
+    caughtCounts: {},
+    currentArea: AREAS[0], 
+    phase: "idle",
+    isSelling: false,
+    prestigeLevel: 0,
+    prestigePoints: 0,
+    activeEvents: { positive: null, negative: null, expires: 0 },
+    lastVersionSeen: CURRENT_VERSION,
+    antilag: false,
+    repescagemAttempted: false,
+  };
+}

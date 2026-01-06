@@ -31,11 +31,18 @@ function checkGameVersion() {
   if (menuVersionDisplay) menuVersionDisplay.textContent = `${CURRENT_VERSION}`;
 
   if (savedVersion !== CURRENT_VERSION) {
+    console.log(`Nova versão detectada: ${CURRENT_VERSION}. Resetando dados.`);
+
     localStorage.removeItem("fishing-master-save");
-    console.log(`Nova versão detectada: ${CURRENT_VERSION}`);
-    document
-      .getElementById("version-welcome-screen")
-      .classList.remove("hidden");
+
+    gameState = getDefaultGameState();
+
+    gameState.lastVersionSeen = CURRENT_VERSION;
+
+    const welcomeModal = document.getElementById("version-welcome-screen");
+    if (welcomeModal) welcomeModal.classList.remove("hidden");
+
+    saveGame();
   }
 }
 
@@ -2179,8 +2186,9 @@ document
 
 document.getElementById("btn-close-version").addEventListener("click", () => {
   saveGame();
-  document.getElementById("version-welcome-screen").classList.add("hidden");
+  // document.getElementById("version-welcome-screen").classList.add("hidden");
   playSound("click");
+  location.reload();
 });
 
 document.getElementById("btn-donate").addEventListener("click", () => {
