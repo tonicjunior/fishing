@@ -60,6 +60,14 @@
     class="font-display antialiased text-white select-none bg-background-dark overflow-x-hidden"
     oncontextmenu="return false;"
   >
+    <div id="repescagem-loader">
+      <img
+        src="assets/repescagem_overlay.gif"
+        class="loader-gif"
+        alt="loading"
+      />
+      <div class="loader-text">Rastreiando peixe...</div>
+    </div>
     <div
       id="initial-flow"
       class="fixed inset-0 z-[9999] flex items-center justify-center bg-background-dark"
@@ -149,10 +157,18 @@
           Novidades da V<span id="welcome-version-display">0.0.0</span>
         </h2>
         <p class="text-gray-400 text-sm mb-6 leading-relaxed">
-          Otimizamos o motor de pesca para dispositivos mobile. <br />
+          <span class="text-primary font-bold">🚀 GRANDES NOVIDADES!</span
+          ><br /><br />
+          •
           <span class="text-primary font-bold"
             >Novo Sistema Antilag disponível!</span
-          >
+          ><br />
+          • <span class="text-white font-bold">Novo Sistema de Radar</span
+          ><br />
+          •
+          <span class="text-white font-bold"
+            >Novo Sistema Controle de Linha</span
+          ><br />
         </p>
 
         <div
@@ -906,6 +922,19 @@
                 </div>
 
                 <div class="tab-content" id="tab-boat">
+                  <div class="upgrade-item" data-upgrade="repescagem">
+                    <div class="upgrade-icon">🪃</div>
+                    <div class="upgrade-info">
+                      <p class="upgrade-name">Radar de Fuga</p>
+                      <p class="upgrade-desc">
+                        Chance de tentar recuperar um peixe que escapou.
+                      </p>
+                      <div class="upgrade-dots" id="repescagem-dots"></div>
+                    </div>
+                    <button class="btn btn-upgrade" id="btn-repescagem">
+                      $150
+                    </button>
+                  </div>
                   <div class="upgrade-item" data-upgrade="speed">
                     <div class="upgrade-icon">💨</div>
                     <div class="upgrade-info">
@@ -1226,11 +1255,9 @@
           ></div>
         </div>
 
-        <div
-          class="flex w-full h-full items-center justify-center gap-6 md:gap-12"
-        >
+        <div class="relative w-full h-full flex items-center justify-center">
           <div
-            class="hidden md:flex flex-col gap-4 min-w-[250px] animate-slide-in-left"
+            class="hidden md:flex flex-col gap-4 min-w-[250px] absolute right-[calc(50%+100px)] animate-slide-in-left"
           >
             <div
               class="bg-surface-dark/90 backdrop-blur-md border border-white/10 p-5 rounded-2xl shadow-2xl relative overflow-hidden group"
@@ -1248,22 +1275,26 @@
                   <span
                     id="minigame-fish-emoji"
                     class="text-5xl filter drop-shadow-lg inline-block"
-                  ></span>
+                  >
+                  </span>
                 </div>
                 <div>
                   <h3
                     id="minigame-fish-name"
                     class="text-xl font-black text-white font-display leading-none mb-1 uppercase italic"
                   >
-                    ---
+                    Sardinha
                   </h3>
                   <div
                     id="minigame-difficulty"
                     class="text-yellow-400 text-xs tracking-widest"
-                  ></div>
+                  >
+                    ★☆☆☆☆
+                  </div>
                 </div>
               </div>
             </div>
+
             <div
               class="bg-black/40 backdrop-blur-md rounded-xl p-3 border border-white/5 flex items-center justify-center"
             >
@@ -1275,16 +1306,13 @@
             </div>
           </div>
 
-          <div
-            class="relative flex gap-4 md:gap-6 items-center heigh-auto h-[64vh]"
-          >
+          <div class="relative flex gap-4 md:gap-6 items-center h-[64vh]">
             <div
               class="h-full w-4 md:w-6 bg-black/60 backdrop-blur-xl rounded-full border border-white/10 relative overflow-hidden shadow-2xl"
             >
               <div
                 id="catch-progress-fill"
                 class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-green-600 via-emerald-400 to-green-300 transition-none"
-                style="height: 30%"
               ></div>
             </div>
 
@@ -1295,19 +1323,102 @@
               <div
                 id="catch-zone"
                 class="absolute left-1 right-1 h-[25%] rounded-lg bg-primary/30 border border-primary/50 shadow-[0_0_20px_rgba(25,161,230,0.4)] z-10 backdrop-blur-sm transition-none"
-                style="top: 50%"
               ></div>
+
               <div
                 id="fish-marker"
                 class="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-none"
-                style="top: 50%"
               >
-                <div class="relative" id="fish-marker-inner"></div>
+                <div
+                  class="relative"
+                  id="fish-marker-inner"
+                  style="transform: scaleX(-1)"
+                ></div>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- REPESCAGEM OVERLAY -->
+    <div
+      id="repescagem-overlay"
+      class="fixed inset-0 z-[9999] hidden flex flex-col items-center justify-center bg-black/70 backdrop-blur-md"
+    >
+      <div class="mb-2 flex flex-col items-center">
+        <span
+          id="repescagem-timer-text"
+          class="text-3xl font-black text-red-500 font-mono italic drop-shadow-lg"
+          >20.0s</span
+        >
+        <div class="w-48 h-1.5 bg-white/10 rounded-full mt-1 overflow-hidden">
+          <div
+            id="repescagem-timer-bar"
+            class="h-full bg-red-500 w-full transition-all duration-100"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Mensagens de fluxo -->
+      <div
+        id="repescagem-message"
+        class="text-center mb-6 opacity-0 transition-opacity duration-300"
+      >
+        <p class="text-white text-2xl font-black uppercase tracking-widest"></p>
+      </div>
+
+      <!-- HUD Tentativas -->
+      <div class="flex items-center gap-2 mb-4" id="repescagem-attempts">
+        <div class="h-3 w-12 bg-primary rounded-full attempt-dot"></div>
+        <div class="h-3 w-12 bg-white/10 rounded-full attempt-dot"></div>
+        <div class="h-3 w-12 bg-white/10 rounded-full attempt-dot"></div>
+      </div>
+
+      <!-- CÍRCULO -->
+      <div class="relative w-72 h-72 md:w-80 md:h-80">
+        <div class="absolute inset-0 rounded-full bg-primary/10 blur-3xl"></div>
+        <div
+          class="absolute inset-0 rounded-full bg-slate-900 border-8 border-slate-700 shadow-2xl overflow-hidden"
+        >
+          <div id="repescagem-zones" class="absolute inset-0"></div>
+
+          <div
+            id="repescagem-pointer"
+            class="absolute inset-0 flex items-start justify-center origin-center z-50"
+          >
+            <div
+              class="w-1.5 h-[48%] bg-red-500 rounded-full shadow-[0_0_12px_rgba(239,68,68,0.9)] border border-white/20"
+            ></div>
+          </div>
+
+          <div
+            class="absolute inset-1/4 rounded-full bg-slate-800 border-4 border-slate-600 flex items-center justify-center z-40"
+          >
+            <span
+              class="text-primary font-black uppercase tracking-widest animate-pulse text-sm"
+              >Girando</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão -->
+      <button
+        id="repescagem-btn"
+        class="mt-8 w-64 h-16 rounded-2xl bg-green-600 hover:bg-green-500 active:scale-95 transition-all shadow-xl flex items-center justify-center gap-2"
+      >
+        <span class="material-symbols-outlined text-white text-2xl"
+          >touch_app</span
+        >
+        <span class="text-white font-black uppercase tracking-widest"
+          >Capturar</span
+        >
+      </button>
+
+      <p class="mt-3 text-white/50 text-xs uppercase tracking-widest">
+        Toque no momento certo
+      </p>
     </div>
 
     <div class="modal result-modal" id="result-modal">
@@ -1594,6 +1705,9 @@
     </div>
 
     <div id="flash-overlay" class="flash-screen"></div>
-    <script src="script.js"></script>
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/audio.js"></script>
+    <script src="assets/js/ui-manager.js"></script>
+    <script src="assets/js/script.js"></script>
   </body>
 </html>
